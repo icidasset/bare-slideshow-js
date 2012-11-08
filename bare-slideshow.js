@@ -46,7 +46,7 @@ root.BareSlideshow = (function($) {
     if (settings) {
       this.settings = {};
 
-      _.extend(this.settings, original_settings, settings);
+      $.extend(this.settings, original_settings, settings);
     }
 
     // bind to self
@@ -170,7 +170,7 @@ root.BareSlideshow = (function($) {
     dfd = $.Deferred();
 
     // queue
-    queue = _.map($slides, function(slide) {
+    queue = $.map($slides, function(slide, idx) {
       var type, method, $slide;
 
       $slide   = $(slide);
@@ -312,7 +312,7 @@ root.BareSlideshow = (function($) {
     method_object = method_object || self;
 
     // loop
-    _.each(array, function(method_name) {
+    $.each(array, function(idx, method_name) {
       method_object[method_name] = __bind(method_object[method_name], self);
     });
   };
@@ -399,7 +399,7 @@ root.BareSlideshow = (function($) {
     dfd = $.Deferred();
 
     // queue
-    queue = _.map($images, function(image) {
+    queue = $.map($images, function(image, idx) {
       var src, $image, $slide;
 
       //// set elements
