@@ -221,7 +221,7 @@ root.BareSlideshow = (function($) {
         var $slide = $(this),
             d = $slide.data("as-background");
 
-        if (d == "1" || d == "true" || d == true) {
+        if (d == "1" || d == "true" || d === true) {
           self.set_images_as_background($slide);
         } else {
           $slide.find("img[src]").each(function() {
@@ -562,7 +562,7 @@ root.BareSlideshow = (function($) {
     if (fade) {
       if (slide_number > this.current_slide_number) {
         fake_slide_html = "<div class=\"" + this.settings.slide_klass +
-                          " fake\" style=\"display: inline-block;\"></div>"
+                          " fake\" style=\"display: inline-block;\"></div>";
         $fake_slide = $(fake_slide_html);
         $slide.before($fake_slide);
       }
