@@ -29,6 +29,7 @@ root.BareSlideshow = (function($) {
     slide_navigation_klass: "navigation",
 
     //// <options>
+    transition: "slide",
     animation_speed: 750,
     set_images_as_background: false,
     start_in_the_middle: false
@@ -40,7 +41,13 @@ root.BareSlideshow = (function($) {
    *  Constructor
    */
   function BS(element, settings) {
-    if (settings) _.extend(this.settings, settings || {});
+    var original_settings = this.settings;
+
+    if (settings) {
+      this.settings = {};
+
+      _.extend(this.settings, original_settings, settings);
+    }
 
     // bind to self
     this.bind_to_self([
@@ -98,8 +105,30 @@ root.BareSlideshow = (function($) {
    *  Load
    */
   BS.prototype.load = function() {
+    var dfd, next, complete;
+
+    // deferred
+    dfd = $.Deferred();
+
+    // callbacks
+    next = __bind(function() {
+      $.when(this.load_the_rest())
+       .then(complete);
+    }, this);
+
+    complete = __bind(function() {
+      this.$slideshow.removeClass("loading");
+      dfd.resolve();
+    }, this);
+
+    // add loading class
+    this.$slideshow.addClass("loading");
+
+    // load first and then proceed
     $.when(this.load_first())
-     .then(this.load_the_rest);
+     .then(next);
+
+    return dfd.promise();
   };
 
 
@@ -249,8 +278,21 @@ root.BareSlideshow = (function($) {
    *  Event handlers
    */
   BS.prototype.window_resize_handler = function(e) {
-    if (!this.ready) return;
-    this.go_to_slide(this.current_slide_number, { direct: true });
+    var self = this;
+
+    // check
+    if (!self.ready) return;
+
+    // go to slide
+    self.go_to_slide(self.current_slide_number, { direct: true });
+
+    // refit images
+    self.$slides.each(function() {
+      var $slide = $(this),
+          type = $slide.data("type") || "images",
+          $img = (type == "images" ? $slide.find("img") : false);
+      if ($img) self.fit_image($img, $slide);
+    });
   };
 
 
@@ -327,6 +369,7 @@ root.BareSlideshow = (function($) {
     // set
     dfd = $.Deferred();
     $img = $(new window.Image());
+    src = encodeURI(src);
 
     // load up
     $img.css("opacity", 0)
@@ -470,6 +513,11 @@ root.BareSlideshow = (function($) {
       $slides : $slides.find("img[src]")
     );
 
+    // if regular img elements, make sure slide is visible
+    if (!this.settings.set_images_as_background) {
+      $slides.css("opacity", 1);
+    }
+
     // show
     $objects_to_show.each(function(idx) {
       $(this).delay((animation_speed / 2) * (idx + 1))
@@ -489,10 +537,12 @@ root.BareSlideshow = (function($) {
    *  Navigation
    */
   BS.prototype.go_to_slide = function(slide_number, options) {
-    var index, offset, $slide;
+    var fade, index, offset, fake_slide_html,
+        $slide, $previous_slide, $fake_slide;
 
-    // options
+    // options & settings
     options = options || {};
+    fade = this.settings.transition == "fade";
 
     // animation speed
     options.animation_speed = (
@@ -504,6 +554,26 @@ root.BareSlideshow = (function($) {
 
     // set
     $slide = this.$slides.eq(index);
+    $previous_slide = this.$slides.eq(this.current_slide_number - 1);
+
+    // if transition is fade:
+    // - insert fake slide
+    // - add necessary css to previous slide
+    if (fade) {
+      if (slide_number > this.current_slide_number) {
+        fake_slide_html = "<div class=\"" + this.settings.slide_klass +
+                          " fake\" style=\"display: inline-block;\"></div>"
+        $fake_slide = $(fake_slide_html);
+        $slide.before($fake_slide);
+      }
+
+      $previous_slide.css({
+        left: 0,
+        position: "absolute",
+        top: 0,
+        zIndex: 8
+      });
+    }
 
     // active slide
     this.$slides.removeClass("active");
@@ -527,8 +597,17 @@ root.BareSlideshow = (function($) {
         .stop(true, true)
         .animate(
           { textIndent: -offset },
-          options.animation_speed
+          (fade ? 0 : options.animation_speed)
         );
+
+    // if transition is fade
+    // - unmark previous slide as sticky
+    if (fade) {
+      $previous_slide.stop(true, true).fadeTo(options.animation_speed, 0, function() {
+        if ($fake_slide) $fake_slide.remove();
+        $previous_slide.css({ opacity: 1, position: "relative", zIndex: "" });
+      });
+    }
   };
 
 

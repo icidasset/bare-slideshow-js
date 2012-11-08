@@ -3,7 +3,7 @@
 
   // slideshow element & options
   el = document.getElementById("slideshow");
-  opts = { animation_speed: 0 };
+  opts = { transition: "fade" };
 
   // setup & load slideshow
   bs = new BareSlideshow(el, opts);
