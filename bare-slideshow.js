@@ -136,6 +136,7 @@ root.BareSlideshow = (function($) {
     var dfd = $.Deferred(),
         next = __bind(function() {
           this.after_load_first_slide(dfd);
+          this.$slideshow.addClass("loaded-first");
         }, this);
 
     $.when(this.load_slides(this.$first_slide))
@@ -363,7 +364,7 @@ root.BareSlideshow = (function($) {
   /**************************************
    *  Images
    */
-  BS.prototype.load_image = function(src, $append_to) {
+  BS.prototype.load_image = function(src, $append_to, extra_attributes) {
     var dfd, $img;
 
     // set
@@ -375,8 +376,10 @@ root.BareSlideshow = (function($) {
     $img.css("opacity", 0)
         .on("load", dfd.resolve);
 
-    // set src
-    $img.attr("src", src);
+    // set attributes
+    attributes = extra_attributes || {};
+    attributes.src = src;
+    $img.attr(attributes);
 
     // append
     $append_to.append($img);
@@ -400,7 +403,7 @@ root.BareSlideshow = (function($) {
 
     // queue
     queue = $.map($images, function(image, idx) {
-      var src, $image, $slide;
+      var src, attr, $image, $slide;
 
       //// set elements
       $image = $(image);
@@ -409,11 +412,15 @@ root.BareSlideshow = (function($) {
       //// set
       src = $image.data("src");
 
+      attr = {};
+      attr.alt = $image.attr("alt");
+      attr.title = $image.attr("title");
+
       //// remove image
       $image.remove();
 
       //// load image and return dfd
-      return self.load_image(src, $slide);
+      return self.load_image(src, $slide, attr);
     });
 
     // process queue
@@ -512,11 +519,6 @@ root.BareSlideshow = (function($) {
     $objects_to_show = (this.settings.set_images_as_background ?
       $slides : $slides.find("img[src]")
     );
-
-    // if regular img elements, make sure slide is visible
-    if (!this.settings.set_images_as_background) {
-      $slides.css("opacity", 1);
-    }
 
     // show
     $objects_to_show.each(function(idx) {
