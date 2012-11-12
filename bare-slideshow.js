@@ -32,7 +32,9 @@ root.BareSlideshow = (function($) {
     transition: "slide",
     animation_speed: 750,
     set_images_as_background: false,
-    start_in_the_middle: false
+    fit_images: true,
+    start_in_the_middle: false,
+    start_slide: 1
   };
 
 
@@ -87,7 +89,7 @@ root.BareSlideshow = (function($) {
     if (this.settings.start_in_the_middle) {
       this.start_slide = Math.round(this.count_slides() / 2);
     } else {
-      this.start_slide = 1;
+      this.start_slide = this.settings.start_slide;
     }
 
     // set "first" slide element
@@ -224,10 +226,10 @@ root.BareSlideshow = (function($) {
 
         if (d == "1" || d == "true" || d === true) {
           self.set_images_as_background($slide);
-        } else {
+        } else if (self.settings.fit_images) {
           $slide.find("img[src]").each(function() {
             var $image = $(this);
-            self.fit_image($image, $slide);
+            setTimeout(function() { self.fit_image($image, $slide); });
           });
         }
       });
@@ -288,12 +290,14 @@ root.BareSlideshow = (function($) {
     self.go_to_slide(self.current_slide_number, { direct: true });
 
     // refit images
-    self.$slides.each(function() {
-      var $slide = $(this),
-          type = $slide.data("type") || "images",
-          $img = (type == "images" ? $slide.find("img") : false);
-      if ($img) self.fit_image($img, $slide);
-    });
+    if (self.settings.fit_images) {
+      self.$slides.each(function() {
+        var $slide = $(this),
+            type = $slide.data("type") || "images",
+            $img = (type == "images" ? $slide.find("img") : false);
+        if ($img) self.fit_image($img, $slide);
+      });
+    }
   };
 
 
@@ -365,12 +369,12 @@ root.BareSlideshow = (function($) {
    *  Images
    */
   BS.prototype.load_image = function(src, $append_to, extra_attributes) {
-    var dfd, $img;
+    var dfd, attributes, $img;
 
     // set
     dfd = $.Deferred();
-    $img = $(new window.Image());
     src = encodeURI(src);
+    $img = $(new window.Image());
 
     // load up
     $img.css("opacity", 0)
@@ -415,6 +419,8 @@ root.BareSlideshow = (function($) {
       attr = {};
       attr.alt = $image.attr("alt");
       attr.title = $image.attr("title");
+      attr.height = $image.attr("height");
+      attr.width = $image.attr("width");
 
       //// remove image
       $image.remove();
@@ -433,6 +439,8 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.set_images_as_background = function($slides) {
+    var self = this;
+
     $slides.css("opacity", 0);
     $slides.each(function() {
       var $slide, $img;
@@ -446,7 +454,12 @@ root.BareSlideshow = (function($) {
 
       //// background css
       $slide.css("background-image", "url(" + $img.attr("src") + ")")
-            .css("background-size", "cover");
+            .css("background-position", "center")
+            .css("background-repeat", "no-repeat");
+
+      if (self.settings.fit_images) {
+        $slide.css("background-size", "cover");
+      }
 
       //// remove img
       $img.remove();
@@ -457,10 +470,6 @@ root.BareSlideshow = (function($) {
   BS.prototype.fit_image = function($image, $wrapper) {
     var ratio_image, ratio_wrapper, image_left, image_top;
 
-    // ratio
-    ratio_image = $image.width() / $image.height();
-    ratio_wrapper = $wrapper.width() / $wrapper.height();
-
     // presets
     $image.css({
       display: "block",
@@ -469,8 +478,12 @@ root.BareSlideshow = (function($) {
       top: "0px"
     });
 
+    // ratio
+    ratio_image = $image.width() / $image.height();
+    ratio_wrapper = $wrapper.width() / $wrapper.height();
+
     // full height
-    if (ratio_wrapper < ratio_image) {
+    if (isFinite(ratio_wrapper) && ratio_wrapper < ratio_image) {
       $image.css({ height: $wrapper.height(), width: "auto" });
 
       image_left = -($image.width() / 2 - $wrapper.width() / 2);
@@ -484,6 +497,13 @@ root.BareSlideshow = (function($) {
     // full width
     } else {
       $image.css({ height: "auto", width: "100%" });
+
+      if (!isFinite(ratio_wrapper)) {
+        this.$slideshow
+          .add(this.$slides_wrapper)
+          .add(this.$slides)
+          .height($image.height());
+      }
 
       image_top = -($image.height() / 2 - $wrapper.height() / 2);
       image_top = image_top > 0 ? 0 : image_top;
@@ -589,7 +609,7 @@ root.BareSlideshow = (function($) {
     });
 
     offset = offset + $slide.width() / 2;
-    offset = offset - this.$slideshow.width() / 2;
+    offset = offset - this.$slides_wrapper.width() / 2;
 
     // current slide number
     this.current_slide_number = slide_number;
