@@ -268,11 +268,21 @@ root.BareSlideshow = (function($) {
 
     // slides
     this.$slides.css({
-      display: "inline-block",
       overflow: "hidden",
-      position: "relative",
-      textIndent: "0"
+      position: "relative"
     });
+
+    if ($.browser.msie && $.browser.version < 8) {
+      this.$slides.css({
+        display: "inline",
+        zoom: 1
+      });
+    } else {
+      this.$slides.css({
+        display: "inline-block",
+        textIndent: "0"
+      });
+    }
   };
 
 
@@ -288,6 +298,14 @@ root.BareSlideshow = (function($) {
 
     // go to slide
     self.go_to_slide(self.current_slide_number, { direct: true });
+
+    // variable height?
+    if (self.has_variable_height) {
+      this.$slideshow
+        .add(this.$slides_wrapper)
+        .add(this.$slides)
+        .height(self.$slides.first().children("img").height());
+    }
 
     // refit images
     if (self.settings.fit_images) {
@@ -503,6 +521,8 @@ root.BareSlideshow = (function($) {
           .add(this.$slides_wrapper)
           .add(this.$slides)
           .height($image.height());
+
+        this.has_variable_height = true;
       }
 
       image_top = -($image.height() / 2 - $wrapper.height() / 2);
@@ -559,8 +579,8 @@ root.BareSlideshow = (function($) {
    *  Navigation
    */
   BS.prototype.go_to_slide = function(slide_number, options) {
-    var fade, index, offset, fake_slide_html,
-        $slide, $previous_slide, $fake_slide;
+    var fade, index, offset, fake_slide_html, slide_margin, self = this,
+        $slide, $previous_slide, $fake_slide, $slice;
 
     // options & settings
     options = options || {};
@@ -584,7 +604,8 @@ root.BareSlideshow = (function($) {
     if (fade) {
       if (slide_number > this.current_slide_number) {
         fake_slide_html = "<div class=\"" + this.settings.slide_klass +
-                          " fake\" style=\"display: inline-block;\"></div>";
+                          " fake\" style=\"display: inline-block;" +
+                          " *display: inline; *zoom: 1;\"></div>";
         $fake_slide = $(fake_slide_html);
         $slide.before($fake_slide);
       }
@@ -604,8 +625,17 @@ root.BareSlideshow = (function($) {
     // offset
     offset = 0;
 
-    this.$slides.slice(0, index).each(function() {
-      offset = offset + $(this).width();
+    if (this.$slides.eq(1).length) {
+      slide_margin = Math.round(this.$slides.eq(1).offset().left -
+                     this.$slides.eq(0).offset().left - $slide.width());
+    } else {
+      slide_margin = 0;
+    }
+
+    $slice = fade ? this.$slides.not($previous_slide) : this.$slides;
+    $slice = $slice.slice(0, index);
+    $slice.each(function() {
+      offset = offset + $(this).outerWidth() + slide_margin;
     });
 
     offset = offset + $slide.width() / 2;
