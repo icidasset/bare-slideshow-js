@@ -30,7 +30,7 @@ root.BareSlideshow = (function($) {
 
     //// <options>
     transition: "slide",
-    animation_speed: 750,
+    animation_speed: 350,
     set_images_as_background: false,
     fit_images: true,
     start_in_the_middle: false,
