@@ -263,6 +263,7 @@ root.BareSlideshow = (function($) {
       fontSize: 0,
       lineHeight: 0,
       overflow: "hidden",
+      position: "relative",
       whiteSpace: "nowrap"
     });
 
