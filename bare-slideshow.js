@@ -279,6 +279,8 @@ root.BareSlideshow = (function($) {
   BS.prototype.after_load_first_slide = function(dfd) {
     if (this.settings.transition_system == "all") {
       this.go_to_slide(this.start_slide, { direct: true });
+    } else {
+      this.$slides.not(this.$first_slide).hide(0);
     }
 
     // show slide and then load the rest
