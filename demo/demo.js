@@ -3,7 +3,7 @@
 
   // slideshow element & options
   el = document.getElementById("slideshow");
-  opts = { transition: "fade" };
+  opts = {};
 
   // setup & load slideshow
   bs = new BareSlideshow(el, opts);
@@ -18,4 +18,7 @@
       case 39: bs.go_to_next_slide(); break;
     }
   };
+
+  // globalize
+  window.slideshow_instance = bs;
 }());

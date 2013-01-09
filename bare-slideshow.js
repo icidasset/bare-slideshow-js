@@ -29,12 +29,25 @@ root.BareSlideshow = (function($) {
     slide_navigation_klass: "navigation",
 
     //// <options>
+    direction: "horizontal",
     transition: "slide",
+    transition_system: "two-step",
     animation_speed: 350,
     set_images_as_background: false,
     fit_images: true,
     start_in_the_middle: false,
     start_slide: 1
+  };
+
+
+
+  /**************************************
+   *  State object
+   */
+  BS.prototype.state = {
+    // current_slide_number
+    // events_bounded_boolean
+    // slides
   };
 
 
@@ -83,7 +96,11 @@ root.BareSlideshow = (function($) {
   BS.prototype.setup = function() {
     this.set_$children();
     this.set_necessary_css_properties();
-    this.bind_events();
+
+    // bind events, if needed
+    if (!this.state.events_bounded_boolean) {
+      this.bind_events();
+    }
 
     // set "first" slide number
     if (this.settings.start_in_the_middle) {
@@ -94,11 +111,22 @@ root.BareSlideshow = (function($) {
 
     // set "first" slide element
     this.$first_slide = this.$slides.eq(this.start_slide - 1);
+
+    // state
+    this.state.slides = this.$slides.clone();
+    this.state.current_slide_number = this.settings.start_slide;
   };
 
 
   BS.prototype.bind_events = function() {
     $(window).on("resize", this.window_resize_handler);
+    this.state.events_bounded_boolean = true;
+  };
+
+
+  BS.prototype.unbind_events = function() {
+    $(window).off("resize", this.window_resize_handler);
+    this.state.events_bounded_boolean = false;
   };
 
 
@@ -141,7 +169,7 @@ root.BareSlideshow = (function($) {
           this.$slideshow.addClass("loaded-first");
         }, this);
 
-    $.when(this.load_slides(this.$first_slide))
+    $.when(this.load_slides(this.$first_slide, true))
      .then(next);
 
     return dfd.promise();
@@ -149,12 +177,13 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.load_the_rest = function() {
-    var dfd = $.Deferred(),
+    var add_to_dom = (this.settings.transition_system == "all"),
+        dfd = $.Deferred(),
         next = __bind(function() {
           this.after_load(dfd);
         }, this);
 
-    $.when(this.load_slides(this.$slides.not(this.$first_slide)))
+    $.when(this.load_slides(this.$slides.not(this.$first_slide), add_to_dom))
      .then(next);
 
     return dfd.promise();
@@ -165,7 +194,7 @@ root.BareSlideshow = (function($) {
   /**************************************
    *  Load different types of slides
    */
-  BS.prototype.load_slides = function($slides) {
+  BS.prototype.load_slides = function($slides, add_to_dom) {
     var self, dfd, queue;
 
     // set
@@ -180,30 +209,40 @@ root.BareSlideshow = (function($) {
       type     = $slide.data("type") || "images";
       method   = self["load_slides_with_" + type];
 
-      if (method) return method($slide);
+      if (method) return method($slide, add_to_dom);
       else console.error("slide type not implemented");
     });
 
     // process queue
     $.when.apply(this, queue)
-     .then(dfd.resolve);
+     .then(function() {
+        if (!add_to_dom) {
+          $slides.remove();
+          self.$slides = self.get_$slides();
+        }
+        dfd.resolve();
+    });
 
     // promise
     return dfd.promise();
   };
 
 
-  BS.prototype.load_slides_with_images = function($slides) {
-    var next, dfd = $.Deferred();
+  BS.prototype.load_slides_with_images = function($slides, add_to_dom) {
+    var next, dfd = $.Deferred(),
+        $images = $slides.find("img[data-src]");
+
+    // should add to dom
+    if (add_to_dom) add_to_dom = "slide";
 
     // set next
     next = __bind(function() {
-      this.after_load_images($slides);
+      if (add_to_dom) this.after_load_images($slides);
       dfd.resolve();
     }, this);
 
     // load images
-    $.when(this.load_images($slides.find("img[data-src]")))
+    $.when(this.load_images($images, add_to_dom))
      .then(next);
 
     return dfd.promise();
@@ -238,7 +277,9 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.after_load_first_slide = function(dfd) {
-    this.go_to_slide(this.start_slide, { direct: true });
+    if (this.settings.transition_system == "all") {
+      this.go_to_slide(this.start_slide, { direct: true });
+    }
 
     // show slide and then load the rest
     $.when(this.show_slides(this.$first_slide))
@@ -249,41 +290,8 @@ root.BareSlideshow = (function($) {
   BS.prototype.after_load = function(dfd) {
     this.show_slides(this.$slides.not(this.$first_slide));
     this.ready = true;
+    this.window_resize_handler();
     dfd.resolve();
-  };
-
-
-
-  /**************************************
-   *  CSS
-   */
-  BS.prototype.set_necessary_css_properties = function() {
-    // wrapper
-    this.$slides_wrapper.css({
-      fontSize: 0,
-      lineHeight: 0,
-      overflow: "hidden",
-      position: "relative",
-      whiteSpace: "nowrap"
-    });
-
-    // slides
-    this.$slides.css({
-      overflow: "hidden",
-      position: "relative"
-    });
-
-    if ($.browser.msie && $.browser.version < 8) {
-      this.$slides.css({
-        display: "inline",
-        zoom: 1
-      });
-    } else {
-      this.$slides.css({
-        display: "inline-block",
-        textIndent: "0"
-      });
-    }
   };
 
 
@@ -298,7 +306,7 @@ root.BareSlideshow = (function($) {
     if (!self.ready) return;
 
     // go to slide
-    self.go_to_slide(self.current_slide_number, { direct: true });
+    self.go_to_slide(self.state.current_slide_number, { direct: true });
 
     // variable height?
     if (self.has_variable_height) {
@@ -317,6 +325,58 @@ root.BareSlideshow = (function($) {
         if ($img) self.fit_image($img, $slide);
       });
     }
+  };
+
+
+
+  /**************************************
+   *  CSS
+   */
+  BS.prototype.set_necessary_css_properties = function() {
+    this["_sncp_" + this.settings.direction]();
+  };
+
+
+  BS.prototype._sncp_horizontal = function() {
+    this.$slides_wrapper.css({
+      fontSize: 0,
+      lineHeight: 0,
+      overflow: "hidden",
+      position: "relative",
+      whiteSpace: "nowrap"
+    });
+
+    this.$slides.css({
+      overflow: "hidden",
+      position: "relative",
+      verticalAlign: "top"
+    });
+
+    if ($.browser.msie && $.browser.version < 8) {
+      this.$slides.css({
+        display: "inline",
+        zoom: 1
+      });
+    } else {
+      this.$slides.css({
+        display: "inline-block",
+        textIndent: "0"
+      });
+    }
+  };
+
+
+  BS.prototype._sncp_vertical = function() {
+    this.$slides_wrapper.css({
+      overflow: "hidden",
+      position: "relative"
+    });
+
+    this.$slides.css({
+      display: "block",
+      overflow: "hidden",
+      position: "relative"
+    });
   };
 
 
@@ -379,7 +439,7 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.count_slides = function() {
-    return this.$slides.length;
+    return this.state.slides.length;
   };
 
 
@@ -405,7 +465,7 @@ root.BareSlideshow = (function($) {
     $img.attr(attributes);
 
     // append
-    $append_to.append($img);
+    if ($append_to) $append_to.append($img);
 
     // onmousedown
     $img.on("mousedown", function(e) {
@@ -417,7 +477,7 @@ root.BareSlideshow = (function($) {
   };
 
 
-  BS.prototype.load_images = function($images) {
+  BS.prototype.load_images = function($images, append_to) {
     var self, dfd, queue;
 
     // set
@@ -426,11 +486,19 @@ root.BareSlideshow = (function($) {
 
     // queue
     queue = $.map($images, function(image, idx) {
-      var src, attr, $image, $slide;
+      var src, attr, $image, $append_to;
 
       //// set elements
       $image = $(image);
-      $slide = self.get_closest_$slide($image);
+
+      switch (append_to) {
+        case "slide":
+          $append_to = self.get_closest_$slide($image);
+          break;
+        case "parent":
+          $append_to = $image.parent();
+          break;
+      }
 
       //// set
       src = $image.data("src");
@@ -445,7 +513,7 @@ root.BareSlideshow = (function($) {
       $image.remove();
 
       //// load image and return dfd
-      return self.load_image(src, $slide, attr);
+      return self.load_image(src, $append_to, attr);
     });
 
     // process queue
@@ -542,14 +610,20 @@ root.BareSlideshow = (function($) {
   /**************************************
    *  Show slides
    */
-  BS.prototype.show_slides = function($slides) {
+  BS.prototype.show_slides = function($slides, options) {
     var dfd, animation_speed, fade_to, $objects_to_show;
 
     // dfd
     dfd = $.Deferred();
 
-    // animation speed
-    animation_speed = this.settings.animation_speed;
+    // options
+    options = options || {};
+
+    if (options.animation_speed == null) {
+      animation_speed = this.settings.animation_speed;
+    } else {
+      animation_speed = options.animation_speed;
+    }
 
     // fade to
     fade_to = (this.settings.set_images_as_background ?
@@ -580,37 +654,71 @@ root.BareSlideshow = (function($) {
    *  Navigation
    */
   BS.prototype.go_to_slide = function(slide_number, options) {
-    var fade, index, offset, fake_slide_html, slide_margin, self = this,
-        $slide, $previous_slide, $fake_slide, $slice;
+    var $next_slide;
 
-    // options & settings
+    // options
     options = options || {};
-    fade = this.settings.transition == "fade";
 
     // animation speed
     options.animation_speed = (
       options.direct ? 0 : this.settings.animation_speed
     );
 
-    // index
-    index = slide_number - 1;
+    // check
+    if (this.state.current_slide_number === slide_number &&
+        this.settings.transition_system === "two-step") {
+      return;
+    }
+
+    // next method
+    var ts = this.settings.transition_system.replace("-", "_");
+    ts = (this.settings.transition == "fade" ? "two_step" : ts);
+    $next_slide = this["go_to_slide__ts_" + ts].call(this, slide_number, options);
+
+    // active slide
+    this.$slides.removeClass("active");
+    $next_slide.addClass("active");
+
+    // current slide number
+    this.state.current_slide_number = slide_number;
+  };
+
+
+  BS.prototype.go_to_slide__ts_two_step = function(slide_number, options) {
+    var self = this, after_load, add_method, offset, fade,
+        animate_opts = {}, vertical, method, css_value_to_animate,
+        $previous_slide, $next_slide;
+
+    // add method
+    if (this.state.current_slide_number < slide_number || fade) {
+      add_method = "after";
+    } else {
+      add_method = "before";
+    }
 
     // set
-    $slide = this.$slides.eq(index);
-    $previous_slide = this.$slides.eq(this.current_slide_number - 1);
+    vertical = this.settings.direction == "vertical";
+    method = vertical ? "height" : "width";
+    css_value_to_animate = vertical ? "margin-top" : "text-indent";
+
+    $previous_slide = $(this.$slides.toArray().sort(function(a, b) {
+      var av = $(a).data("timestamp") || 0,
+          bv = $(b).data("timestamp") || 0;
+
+      return (av < bv ? -1 : (av > bv ? 1 : 0));
+    }).reverse()[0]);
+
+    $next_slide = $(this.state.slides[slide_number - 1]).clone();
+
+    offset = -($previous_slide[method]());
+    fade = this.settings.transition == "fade";
+
+    // timestamp
+    $next_slide.data("timestamp", new Date().getTime());
 
     // if transition is fade:
-    // - insert fake slide
     // - add necessary css to previous slide
     if (fade) {
-      if (slide_number > this.current_slide_number) {
-        fake_slide_html = "<div class=\"" + this.settings.slide_klass +
-                          " fake\" style=\"display: inline-block;" +
-                          " *display: inline; *zoom: 1;\"></div>";
-        $fake_slide = $(fake_slide_html);
-        $slide.before($fake_slide);
-      }
-
       $previous_slide.css({
         left: 0,
         position: "absolute",
@@ -619,48 +727,98 @@ root.BareSlideshow = (function($) {
       });
     }
 
-    // active slide
-    this.$slides.removeClass("active");
-    $slide.addClass("active");
+    // after load
+    after_load = function() {
+      self.show_slides($next_slide, { animation_speed: 0 });
+
+      if (fade) {
+        self.$slides.stop(true, true);
+        $previous_slide.fadeOut(options.animation_speed, function() {
+          $(this).remove();
+          self.$slides = self.get_$slides();
+        });
+
+      } else {
+        animate_opts[css_value_to_animate] = offset;
+
+        self.$slides_wrapper
+          .stop(true, true)
+          .animate(
+            animate_opts,
+            options.animation_speed,
+            function() {
+              $previous_slide.remove();
+              self.$slides_wrapper.css(css_value_to_animate, "0px");
+              self.$slides = self.get_$slides();
+            }
+          );
+
+      }
+    };
+
+    // add, load, etc.
+    $previous_slide[add_method]($next_slide);
+    self.$slides = self.get_$slides();
+
+    if (add_method == "before" && !fade) {
+      this.$slides_wrapper.css(css_value_to_animate, offset);
+      offset = 0;
+    }
+
+    $.when(this.load_slides($next_slide, true))
+     .then(after_load);
+
+    return $next_slide;
+  };
+
+
+  BS.prototype.go_to_slide__ts_all = function(slide_number, options) {
+    var self = this, slide_margin, offset, animate_opts = {},
+        vertical, method, method_outer, css_value_to_animate,
+        $previous_slide, $next_slide, $slice;
+
+    // set
+    vertical = this.settings.direction == "vertical";
+    method = vertical ? "height" : "width";
+    method_outer = "outer" + method.charAt(0).toUpperCase() + method.slice(1);
+    css_value_to_animate = vertical ? "margin-top" : "text-indent";
+
+    // set elements
+    $previous_slide = this.$slides.eq(this.state.current_slide_number - 1);
+    $next_slide = this.$slides.eq(slide_number - 1);
 
     // offset
     offset = 0;
 
     if (this.$slides.eq(1).length) {
-      slide_margin = Math.round(this.$slides.eq(1).offset().left -
-                     this.$slides.eq(0).offset().left - $slide.width());
+      if (vertical) {
+        slide_margin = Math.round(this.$slides.eq(1).offset().top -
+                       this.$slides.eq(0).offset().top - $next_slide.height());
+      } else {
+        slide_margin = Math.round(this.$slides.eq(1).offset().left -
+                       this.$slides.eq(0).offset().left - $next_slide.width());
+      }
     } else {
       slide_margin = 0;
     }
 
-    $slice = fade ? this.$slides.not($previous_slide) : this.$slides;
-    $slice = $slice.slice(0, index);
+    $slice = this.$slides;
+    $slice = $slice.slice(0, slide_number - 1);
     $slice.each(function() {
-      offset = offset + $(this).outerWidth() + slide_margin;
+      offset = offset + $(this)[method_outer]() + slide_margin;
     });
 
-    offset = offset + $slide.width() / 2;
-    offset = offset - this.$slides_wrapper.width() / 2;
-
-    // current slide number
-    this.current_slide_number = slide_number;
+    offset = offset + $next_slide[method]() / 2;
+    offset = offset - this.$slides_wrapper[method]() / 2;
 
     // animate
+    animate_opts[css_value_to_animate] = -offset;
+
     this.$slides_wrapper
         .stop(true, true)
-        .animate(
-          { textIndent: -offset },
-          (fade ? 0 : options.animation_speed)
-        );
+        .animate(animate_opts, options.animation_speed);
 
-    // if transition is fade
-    // - unmark previous slide as sticky
-    if (fade) {
-      $previous_slide.stop(true, true).fadeTo(options.animation_speed, 0, function() {
-        if ($fake_slide) $fake_slide.remove();
-        $previous_slide.css({ opacity: 1, position: "relative", zIndex: "" });
-      });
-    }
+    return $next_slide;
   };
 
 
@@ -671,7 +829,7 @@ root.BareSlideshow = (function($) {
     if (!this.ready) return;
 
     // previous slide number
-    previous_slide_number = this.current_slide_number - 1;
+    previous_slide_number = this.state.current_slide_number - 1;
 
     // procceed
     if (previous_slide_number > 0) {
@@ -689,7 +847,7 @@ root.BareSlideshow = (function($) {
     if (!this.ready) return;
 
     // next slide number
-    next_slide_number = this.current_slide_number + 1;
+    next_slide_number = this.state.current_slide_number + 1;
 
     // procceed
     if (next_slide_number <= this.count_slides()) {
