@@ -341,13 +341,10 @@ root.BareSlideshow = (function($) {
     this.$slides_wrapper.css({
       fontSize: 0,
       lineHeight: 0,
+      overflow: "hidden",
       position: "relative",
       whiteSpace: "nowrap"
     });
-
-    if (this.settings.direction == "horizontal") {
-      this.$slides_wrapper.css("overflow", "hidden");
-    }
 
     this.$slides.css({
       overflow: "hidden",
@@ -371,7 +368,6 @@ root.BareSlideshow = (function($) {
 
   BS.prototype._sncp_vertical = function() {
     this.$slides_wrapper.css({
-      overflow: "hidden",
       position: "relative"
     });
 
