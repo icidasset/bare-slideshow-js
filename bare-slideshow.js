@@ -717,7 +717,7 @@ root.BareSlideshow = (function($) {
     // timestamp
     $next_slide.data("timestamp", new Date().getTime());
 
-    // if transition is fade:
+    // if transition is 'fade'
     // - add necessary css to previous slide
     if (fade) {
       $previous_slide.css({
@@ -726,6 +726,12 @@ root.BareSlideshow = (function($) {
         top: 0,
         zIndex: 8
       });
+    }
+
+    // if add_method is 'before'
+     if (add_method == "before" && !fade) {
+      this.$slides_wrapper.css(css_value_to_animate, offset);
+      offset = 0;
     }
 
     // after load
@@ -760,11 +766,6 @@ root.BareSlideshow = (function($) {
     // add, load, etc.
     $previous_slide[add_method]($next_slide);
     self.$slides = self.get_$slides();
-
-    if (add_method == "before" && !fade) {
-      this.$slides_wrapper.css(css_value_to_animate, offset);
-      offset = 0;
-    }
 
     $.when(this.load_slides($next_slide, true))
      .then(after_load);
