@@ -2,15 +2,6 @@
 
   + Bare Slideshow
 
-
-  DOCUMENTATION:
-
-  1) Options
-  - a slide can have a type by passing the 'data-type' attribute to the slide element
-  - set-images-as-background is a global option, but can be set by passing
-    'data-as-background="1"' to the slide element. Or the following:
-    'data-as-background="true"' and $(slide_element).data('as-background', true);
-
 */
 
 var root = window;

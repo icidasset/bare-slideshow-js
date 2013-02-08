@@ -3,17 +3,7 @@ body, html {
   margin: 0;
 }
 
-
-#slideshow {
-  height: 100%;
-  width: 100%;
-}
-
-#slideshow .slides {
-  height: 100%;
-}
-
-#slideshow .slides .slide {
-  height: 100%;
-  width: 100%;
-}
+#slideshow,
+#slideshow .slides,
+#slideshow .slides .slide { height: 100% }
+#slideshow .slides .slide { width: 100% }
