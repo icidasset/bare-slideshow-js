@@ -50,10 +50,10 @@ Check `BareSlideshow.prototype.load_slides_with_images` for reference.
 
 *set_images_as_background* is a global option, but can also be set for each slide separately by passing
   `data-as-background="1"` to the slide element. Or one of the following:
-  `data-as-background="true"` or `$(slide_element).data('as-background', true)`;
+  `data-as-background="true"` or `$(slide_element).data('as-background', true)`.
 
 
-## To do list
+## To do
 
 - Remove the jQuery dependency (or support both jQuery and Zepto)
   -> Problem here is the deferreds
