@@ -95,6 +95,13 @@ root.BareSlideshow = (function($) {
    */
   BS.prototype.setup = function() {
     this.set_$children();
+
+    // reset
+    this.$slides_wrapper.css("height", "");
+    this.$slideshow.css("height", "");
+    this.has_variable_height = false;
+
+    // css
     this.set_necessary_css_properties();
 
     // bind events, if needed
