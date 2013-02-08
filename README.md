@@ -46,6 +46,8 @@ When loading the slideshow, the function 'load_slide_with_{{TYPE}}' will be call
 **Make sure this function returns a deferred object.**
 Check `BareSlideshow.prototype.load_slides_with_images` for reference.
 
+### set images as background
+
 *set_images_as_background* is a global option, but can also be set for each slide separately by passing
   `data-as-background="1"` to the slide element. Or one of the following:
   `data-as-background="true"` or `$(slide_element).data('as-background', true)`;
