@@ -352,7 +352,7 @@ root.BareSlideshow = (function($) {
       verticalAlign: "top"
     });
 
-    if ($.browser.msie && $.browser.version < 8) {
+    if ($.browser && $.browser.msie && $.browser.version < 8) {
       this.$slides.css({
         display: "inline",
         zoom: 1
