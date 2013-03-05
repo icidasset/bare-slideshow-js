@@ -1,6 +1,7 @@
 /*
 
-  + Bare Slideshow
+    BARE SLIDESHOW
+    v0.1.0
 
 */
 
@@ -36,8 +37,8 @@ root.BareSlideshow = (function($) {
    *  State object
    */
   BS.prototype.state = {
-    // current_slide_number
     // events_bounded_boolean
+    // current_slide_number
     // slides
   };
 
@@ -51,7 +52,6 @@ root.BareSlideshow = (function($) {
 
     if (settings) {
       this.settings = {};
-
       $.extend(this.settings, original_settings, settings);
     }
 
@@ -456,7 +456,8 @@ root.BareSlideshow = (function($) {
 
     // load up
     $img.css("opacity", 0)
-        .on("load", dfd.resolve);
+        .on("load", dfd.resolve)
+        .on("error", dfd.resolve);
 
     // set attributes
     attributes = extra_attributes || {};
@@ -466,7 +467,7 @@ root.BareSlideshow = (function($) {
     // append
     if ($append_to) $append_to.append($img);
 
-    // onmousedown
+    // prevent image drag
     $img.on("mousedown", function(e) {
       e.preventDefault();
     });
