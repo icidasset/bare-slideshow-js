@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.1.0
+    v0.1.1
 
 */
 
@@ -34,26 +34,11 @@ root.BareSlideshow = (function($) {
 
 
   /**************************************
-   *  State object
-   */
-  BS.prototype.state = {
-    // events_bounded_boolean
-    // current_slide_number
-    // slides
-  };
-
-
-
-  /**************************************
    *  Constructor
    */
   function BS(element, settings) {
-    var original_settings = this.settings;
-
-    if (settings) {
-      this.settings = {};
-      $.extend(this.settings, original_settings, settings);
-    }
+    this.state = {};
+    this.settings = $.extend({}, this.settings, settings || {});
 
     // bind to self
     this.bind_to_self([
