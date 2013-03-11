@@ -3,6 +3,13 @@
 Basic slideshow plugin written in js with prototypes for easy customization.
 
 
+## Dependencies
+
+- jQuery
+
+*There might be support for Zepto in the future*
+
+
 ## How to use
 
 ```javascript
@@ -14,13 +21,6 @@ instance.load();
 ```
 
 *note: does not use a template*
-
-
-## Dependencies
-
-- jQuery
-
-*There might be support for Zepto in the future*
 
 
 ## Settings
