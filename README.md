@@ -18,7 +18,7 @@ instance.load();
 
 ## Dependencies
 
-jQuery
+- jQuery
 
 *There might be support for Zepto in the future*
 
