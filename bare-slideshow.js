@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.1.1
+    v0.1.2
 
 */
 
@@ -72,6 +72,9 @@ root.BareSlideshow = (function($) {
   BS.prototype.setup = function() {
     this.set_$children();
 
+    // state - slides
+    this.state.slides = this.$slides.clone();
+
     // reset
     this.$slides_wrapper.css("height", "");
     this.$slideshow.css("height", "");
@@ -95,8 +98,7 @@ root.BareSlideshow = (function($) {
     // set "first" slide element
     this.$first_slide = this.$slides.eq(this.start_slide - 1);
 
-    // state
-    this.state.slides = this.$slides.clone();
+    // state - current slide number
     this.state.current_slide_number = this.settings.start_slide;
   };
 
@@ -216,7 +218,7 @@ root.BareSlideshow = (function($) {
         $images = $slides.find("img[data-src]");
 
     // should add to dom
-    if (add_to_dom) add_to_dom = "slide";
+    if (add_to_dom) add_to_dom = "parent";
 
     // set next
     next = __bind(function() {
