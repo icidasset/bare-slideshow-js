@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.1.2
+    v0.1.3
 
 */
 
@@ -37,7 +37,7 @@ root.BareSlideshow = (function($) {
    *  Constructor
    */
   function BS(element, settings) {
-    this.state = {};
+    this.state = { timeout_ids: [] };
     this.settings = $.extend({}, this.settings, settings || {});
 
     // bind to self
@@ -60,6 +60,9 @@ root.BareSlideshow = (function($) {
       }
     }());
 
+    // css transitions
+    this.state.css_transition_key = this.get_vendor_property_name("transition");
+
     // further setup
     this.setup();
   }
@@ -71,46 +74,40 @@ root.BareSlideshow = (function($) {
    */
   BS.prototype.setup = function() {
     this.set_$children();
-
-    // state - slides
     this.state.slides = this.$slides.clone();
 
-    // reset
     this.$slides_wrapper.css("height", "");
     this.$slideshow.css("height", "");
     this.has_variable_height = false;
-
-    // css
     this.set_necessary_css_properties();
 
-    // bind events, if needed
+    if (this.settings.transition == "fade") {
+      this.settings.transition_system = "two-step";
+    }
+
     if (!this.state.events_bounded_boolean) {
       this.bind_events();
     }
 
-    // set "first" slide number
     if (this.settings.start_in_the_middle) {
       this.start_slide = Math.round(this.count_slides() / 2);
     } else {
       this.start_slide = this.settings.start_slide;
     }
 
-    // set "first" slide element
     this.$first_slide = this.$slides.eq(this.start_slide - 1);
-
-    // state - current slide number
     this.state.current_slide_number = this.settings.start_slide;
   };
 
 
   BS.prototype.bind_events = function() {
-    $(window).on("resize", this.window_resize_handler);
+    $(window).on("resize.bareslideshow", this.window_resize_handler);
     this.state.events_bounded_boolean = true;
   };
 
 
   BS.prototype.unbind_events = function() {
-    $(window).off("resize", this.window_resize_handler);
+    $(window).off("resize.bareslideshow", this.window_resize_handler);
     this.state.events_bounded_boolean = false;
   };
 
@@ -162,12 +159,12 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.load_the_rest = function() {
-    var add_to_dom = (this.settings.transition_system == "all"),
-        dfd = $.Deferred(),
+    var dfd = $.Deferred(),
         next = __bind(function() {
           this.after_load(dfd);
         }, this);
 
+    var add_to_dom = (this.settings.transition_system == "all");
     $.when(this.load_slides(this.$slides.not(this.$first_slide), add_to_dom))
      .then(next);
 
@@ -190,9 +187,9 @@ root.BareSlideshow = (function($) {
     queue = $.map($slides, function(slide, idx) {
       var type, method, $slide;
 
-      $slide   = $(slide);
-      type     = $slide.data("type") || "images";
-      method   = self["load_slides_with_" + type];
+      $slide = $(slide);
+      type   = $slide.data("type") || "images";
+      method = self["load_slides_with_" + type];
 
       if (method) return method($slide, add_to_dom);
       else console.error("slide type not implemented");
@@ -339,7 +336,7 @@ root.BareSlideshow = (function($) {
       verticalAlign: "top"
     });
 
-    if ($.browser && $.browser.msie && $.browser.version < 8) {
+    if (window.attachEvent && !window.addEventListener) { // IE7
       this.$slides.css({
         display: "inline",
         zoom: 1
@@ -426,6 +423,46 @@ root.BareSlideshow = (function($) {
 
   BS.prototype.count_slides = function() {
     return this.state.slides.length;
+  };
+
+
+  BS.prototype.get_vendor_property_name = function(prop) {
+    var div = document.createElement('div');
+
+    if (prop in div.style) return prop;
+
+    var prefixes = ['Moz', 'Webkit', 'O', 'ms'];
+    var prop_ = prop.charAt(0).toUpperCase() + prop.substr(1);
+
+    for (var i=0, j=prefixes.length; i<j; ++i) {
+      var vendorProp = prefixes[i] + prop_;
+      if (vendorProp in div.style) return vendorProp;
+    }
+  };
+
+
+  BS.prototype.animate = function(el, key, value, duration, after_func) {
+    var animate_opts, ctk, $el = $(el);
+    after_func = after_func || (function() {});
+
+    if (this.state.css_transition_key) {
+      ctk = this.state.css_transition_key;
+
+      $el.css(ctk, key + " " + duration + "ms");
+      setTimeout(function() { $el.css(key, value); }, 0);
+      setTimeout(function() { $el.css(ctk, ""); after_func(); }, duration);
+
+    } else {
+      animate_opts = {};
+      animate_opts[key] = value;
+
+      $el.stop(true, true).animate(animate_opts, duration, after_func);
+    }
+  };
+
+
+  BS.prototype.animate_wrapper = function(key, value, duration, after_func) {
+    this.animate(this.$slides_wrapper, key, value, duration, after_func);
   };
 
 
@@ -598,40 +635,27 @@ root.BareSlideshow = (function($) {
    *  Show slides
    */
   BS.prototype.show_slides = function($slides, options) {
-    var dfd, animation_speed, fade_to, $objects_to_show;
+    var dfd, self, animation_speed, fade_to, $objects_to_show;
 
-    // dfd
     dfd = $.Deferred();
+    self = this;
 
-    // options
     options = options || {};
+    if (options.animation_speed == null) animation_speed = this.settings.animation_speed;
+    else animation_speed = options.animation_speed;
 
-    if (options.animation_speed == null) {
-      animation_speed = this.settings.animation_speed;
-    } else {
-      animation_speed = options.animation_speed;
-    }
+    fade_to = (this.settings.set_images_as_background ? 0.9999 : 1);
+    $objects_to_show = (this.settings.set_images_as_background ? $slides : $slides.find("img[src]"));
 
-    // fade to
-    fade_to = (this.settings.set_images_as_background ?
-      0.9999 : 1
-    );
-
-    // objects to show
-    $objects_to_show = (this.settings.set_images_as_background ?
-      $slides : $slides.find("img[src]")
-    );
-
-    // show
     $objects_to_show.each(function(idx) {
-      $(this).delay((animation_speed / 2) * (idx + 1))
-             .fadeTo(animation_speed, 1);
+      var _this = this;
+      setTimeout(function() {
+        self.animate(_this, "opacity", 1, animation_speed);
+      }, (animation_speed / 2) * (idx + 1));
     });
 
-    // resolve
     setTimeout(dfd.resolve, ((animation_speed / 2) * $objects_to_show.length) + animation_speed);
 
-    // promise
     return dfd.promise();
   };
 
@@ -641,25 +665,19 @@ root.BareSlideshow = (function($) {
    *  Navigation
    */
   BS.prototype.go_to_slide = function(slide_number, options) {
-    var $next_slide;
+    var ts, $next_slide;
+
+    // check
+    if (!this.ready || this.state.current_slide_number === slide_number) return;
 
     // options
     options = options || {};
 
-    // animation speed
-    options.animation_speed = (
-      options.direct ? 0 : this.settings.animation_speed
-    );
-
-    // check
-    if (this.state.current_slide_number === slide_number &&
-        this.settings.transition_system === "two-step") {
-      return;
-    }
+    // animation stuff
+    options.animation_speed = (options.direct ? 0 : this.settings.animation_speed);
 
     // next method
-    var ts = this.settings.transition_system.replace("-", "_");
-    ts = (this.settings.transition == "fade" ? "two_step" : ts);
+    ts = this.settings.transition_system.replace("-", "_");
     $next_slide = this["go_to_slide__ts_" + ts].call(this, slide_number, options);
 
     // active slide
@@ -672,8 +690,8 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.go_to_slide__ts_two_step = function(slide_number, options) {
-    var self = this, after_load, add_method, offset, fade,
-        animate_opts = {}, vertical, method, css_value_to_animate,
+    var self, add_method, vertical, method, css_value_to_animate,
+        offset, fade, after_load, after_animation,
         $previous_slide, $next_slide;
 
     // add method
@@ -684,6 +702,7 @@ root.BareSlideshow = (function($) {
     }
 
     // set
+    self = this;
     vertical = this.settings.direction == "vertical";
     method = vertical ? "height" : "width";
     css_value_to_animate = vertical ? "margin-top" : "text-indent";
@@ -703,69 +722,63 @@ root.BareSlideshow = (function($) {
     // timestamp
     $next_slide.data("timestamp", new Date().getTime());
 
-    // if transition is 'fade'
-    // - add necessary css to previous slide
-    if (fade) {
-      $previous_slide.css({
-        left: 0,
-        position: "absolute",
-        top: 0,
-        zIndex: 8
-      });
-    }
-
     // if add_method is 'before'
-     if (add_method == "before" && !fade) {
+    if (add_method == "before" && !fade) {
       this.$slides_wrapper.css(css_value_to_animate, offset);
       offset = 0;
     }
 
     // after load
     after_load = function() {
+      self.set_necessary_css_properties();
       self.show_slides($next_slide, { animation_speed: 0 });
 
       if (fade) {
-        self.$slides.stop(true, true);
-        $previous_slide.fadeOut(options.animation_speed, function() {
-          $(this).remove();
+        after_animation = function() {
+          $previous_slide.remove();
           self.$slides = self.get_$slides();
+        };
+
+        $previous_slide.css({
+          left: 0,
+          position: "absolute",
+          top: 0,
+          zIndex: 8
         });
 
-      } else {
-        animate_opts[css_value_to_animate] = offset;
+        self.animate($previous_slide[0], "opacity", 0, options.animation_speed, after_animation);
 
-        self.$slides_wrapper
-          .stop(true, true)
-          .animate(
-            animate_opts,
-            options.animation_speed,
-            function() {
-              $previous_slide.remove();
-              self.$slides_wrapper.css(css_value_to_animate, "0px");
-              self.$slides = self.get_$slides();
-            }
-          );
+      } else {
+        after_animation = function() {
+          $previous_slide.remove();
+          self.$slides_wrapper.css(css_value_to_animate, "0px");
+          self.$slides = self.get_$slides();
+        };
+
+        self.animate_wrapper(css_value_to_animate, offset, options.animation_speed, after_animation);
 
       }
     };
 
-    // add, load, etc.
+    // add and load slides
     $previous_slide[add_method]($next_slide);
     self.$slides = self.get_$slides();
 
     $.when(this.load_slides($next_slide, true))
      .then(after_load);
 
+    // return
     return $next_slide;
   };
 
 
   BS.prototype.go_to_slide__ts_all = function(slide_number, options) {
-    var self = this, slide_margin, offset, animate_opts = {},
-        vertical, method, method_outer, css_value_to_animate,
+    var self, vertical, method, method_outer,
+        css_value_to_animate, offset, slide_margin,
         $previous_slide, $next_slide, $slice;
 
     // set
+    self = this;
     vertical = this.settings.direction == "vertical";
     method = vertical ? "height" : "width";
     method_outer = "outer" + method.charAt(0).toUpperCase() + method.slice(1);
@@ -800,26 +813,16 @@ root.BareSlideshow = (function($) {
     offset = offset - this.$slides_wrapper[method]() / 2;
 
     // animate
-    animate_opts[css_value_to_animate] = -offset;
-
-    this.$slides_wrapper
-        .stop(true, true)
-        .animate(animate_opts, options.animation_speed);
+    this.animate_wrapper(css_value_to_animate, -offset, options.animation_speed);
 
     return $next_slide;
   };
 
 
   BS.prototype.go_to_previous_slide = function() {
-    var previous_slide_number;
+    var previous_slide_number = this.state.current_slide_number - 1;
 
-    // check if ready
-    if (!this.ready) return;
-
-    // previous slide number
-    previous_slide_number = this.state.current_slide_number - 1;
-
-    // procceed
+    // proceed
     if (previous_slide_number > 0) {
       this.go_to_slide(previous_slide_number);
     } else {
@@ -829,15 +832,9 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.go_to_next_slide = function() {
-    var next_slide_number;
+    var next_slide_number = this.state.current_slide_number + 1;
 
-    // check if ready
-    if (!this.ready) return;
-
-    // next slide number
-    next_slide_number = this.state.current_slide_number + 1;
-
-    // procceed
+    // proceed
     if (next_slide_number <= this.count_slides()) {
       this.go_to_slide(next_slide_number);
     } else {
