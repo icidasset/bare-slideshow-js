@@ -580,7 +580,8 @@ root.BareSlideshow = (function($) {
 
   BS.prototype.fit_image = function($image, $wrapper) {
     var ratio_image, ratio_slideshow, ratio_wrapper,
-        image_left, image_top;
+        full_height_condition_a, full_height_condition_b,
+        new_image_height, image_left, image_top;
 
     // presets
     $image.css({
@@ -592,12 +593,19 @@ root.BareSlideshow = (function($) {
 
     // ratio
     ratio_image = $image.width() / $image.height();
-    ratio_slides_wrapper = this.$slides_wrapper.width() / this.$slides_wrapper.height();
     ratio_wrapper = $wrapper.width() / $wrapper.height();
+    ratio_slides_wrapper = this.$slides_wrapper.width() / this.$slides_wrapper.height();
 
     // full height
-    if (isFinite(ratio_wrapper) && ratio_wrapper < ratio_image) {
-      $image.css({ height: $wrapper.height(), width: "auto" });
+    full_height_condition_a = isFinite(ratio_wrapper) && ratio_wrapper < ratio_image;
+    full_height_condition_b = isFinite(ratio_slides_wrapper) && !isFinite(ratio_wrapper) && ratio_slides_wrapper < ratio_image;
+
+    if (full_height_condition_a || full_height_condition_b) {
+      if (full_height_condition_a) new_image_height = $wrapper.height();
+      else new_image_height = this.$slides_wrapper.height();
+
+      if (full_height_condition_b) $wrapper.height(new_image_height);
+      $image.css({ height: new_image_height, width: "auto" });
 
       image_left = -($image.width() / 2 - $wrapper.width() / 2);
       image_left = image_left > 0 ? 0 : image_left;
