@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.1.3
+    v0.1.4
 
 */
 
@@ -579,7 +579,8 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.fit_image = function($image, $wrapper) {
-    var ratio_image, ratio_wrapper, image_left, image_top;
+    var ratio_image, ratio_slideshow, ratio_wrapper,
+        image_left, image_top;
 
     // presets
     $image.css({
@@ -591,6 +592,7 @@ root.BareSlideshow = (function($) {
 
     // ratio
     ratio_image = $image.width() / $image.height();
+    ratio_slides_wrapper = this.$slides_wrapper.width() / this.$slides_wrapper.height();
     ratio_wrapper = $wrapper.width() / $wrapper.height();
 
     // full height
@@ -609,13 +611,15 @@ root.BareSlideshow = (function($) {
     } else {
       $image.css({ height: "auto", width: "100%" });
 
-      if (!isFinite(ratio_wrapper)) {
+      if (!isFinite(ratio_slides_wrapper)) {
         this.$slideshow
           .add(this.$slides_wrapper)
           .add(this.$slides)
           .height($image.height());
 
         this.has_variable_height = true;
+      } else if (!isFinite(ratio_wrapper)) {
+        $wrapper.height(this.$slides_wrapper.height());
       }
 
       image_top = -($image.height() / 2 - $wrapper.height() / 2);
