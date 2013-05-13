@@ -60,7 +60,7 @@ root.BareSlideshow = (function($) {
       }
     }());
 
-    // css transitions
+    // vendor specifics
     this.state.css_transition_key = this.get_vendor_property_name("transition");
 
     // further setup
@@ -74,19 +74,17 @@ root.BareSlideshow = (function($) {
    */
   BS.prototype.setup = function() {
     this.set_$children();
-    this.state.slides = this.$slides.clone();
+    this.state.$slides = this.$slides.clone();
 
+    // reset + css
     this.$slides_wrapper.css("height", "");
     this.$slideshow.css("height", "");
     this.has_variable_height = false;
     this.set_necessary_css_properties();
 
+    // conditions
     if (this.settings.transition == "fade") {
       this.settings.transition_system = "two-step";
-    }
-
-    if (!this.state.events_bounded_boolean) {
-      this.bind_events();
     }
 
     if (this.settings.start_in_the_middle) {
@@ -95,6 +93,15 @@ root.BareSlideshow = (function($) {
       this.start_slide = this.settings.start_slide;
     }
 
+    if (!this.settings.slide_used_for_height) {
+      this.settings.slide_used_for_height = this.start_slide;
+    }
+
+    if (!this.state.events_bounded_boolean) {
+      this.bind_events();
+    }
+
+    // first and current slide
     this.$first_slide = this.$slides.eq(this.start_slide - 1);
     this.state.current_slide_number = this.settings.start_slide;
   };
@@ -148,10 +155,10 @@ root.BareSlideshow = (function($) {
     var dfd = $.Deferred(),
         next = __bind(function() {
           this.after_load_first_slide(dfd);
-          this.$slideshow.addClass("loaded-first");
         }, this);
 
-    $.when(this.load_slides(this.$first_slide, true))
+    var add_to_dom = true;
+    $.when(this.load_slides(this.$first_slide, add_to_dom))
      .then(next);
 
     return dfd.promise();
@@ -164,7 +171,7 @@ root.BareSlideshow = (function($) {
           this.after_load(dfd);
         }, this);
 
-    var add_to_dom = (this.settings.transition_system == "all");
+    var add_to_dom = this.settings.transition_system == "all";
     $.when(this.load_slides(this.$slides.not(this.$first_slide), add_to_dom))
      .then(next);
 
@@ -200,8 +207,9 @@ root.BareSlideshow = (function($) {
      .then(function() {
         if (!add_to_dom) {
           $slides.remove();
-          self.$slides = self.get_$slides();
+          self.set_$slides();
         }
+
         dfd.resolve();
     });
 
@@ -259,13 +267,15 @@ root.BareSlideshow = (function($) {
 
 
   BS.prototype.after_load_first_slide = function(dfd) {
+    this.$slideshow.addClass("loaded-first");
+
     if (this.settings.transition_system == "all") {
       this.go_to_slide(this.start_slide, { direct: true });
     } else {
       this.$slides.not(this.$first_slide).hide(0);
+      this.$first_slide.addClass("active");
     }
 
-    // show slide and then load the rest
     $.when(this.show_slides(this.$first_slide))
      .then(dfd.resolve);
   };
@@ -417,12 +427,17 @@ root.BareSlideshow = (function($) {
   BS.prototype.set_$children = function() {
     this.$slide_navigation = this.get_$slide_navigation();
     this.$slides_wrapper = this.get_$slides_wrapper();
+    this.set_$slides();
+  };
+
+
+  BS.prototype.set_$slides = function() {
     this.$slides = this.get_$slides();
   };
 
 
   BS.prototype.count_slides = function() {
-    return this.state.slides.length;
+    return this.state.$slides.length;
   };
 
 
@@ -726,7 +741,7 @@ root.BareSlideshow = (function($) {
       return (av < bv ? -1 : (av > bv ? 1 : 0));
     }).reverse()[0]);
 
-    $next_slide = $(this.state.slides[slide_number - 1]).clone();
+    $next_slide = $(this.state.$slides[slide_number - 1]).clone();
 
     offset = -($previous_slide[method]());
     fade = this.settings.transition == "fade";
@@ -748,7 +763,7 @@ root.BareSlideshow = (function($) {
       if (fade) {
         after_animation = function() {
           $previous_slide.remove();
-          self.$slides = self.get_$slides();
+          self.set_$slides();
         };
 
         $previous_slide.css({
@@ -764,7 +779,7 @@ root.BareSlideshow = (function($) {
         after_animation = function() {
           $previous_slide.remove();
           self.$slides_wrapper.css(css_value_to_animate, "0px");
-          self.$slides = self.get_$slides();
+          self.set_$slides();
         };
 
         self.animate_wrapper(css_value_to_animate, offset, options.animation_speed, after_animation);
@@ -774,7 +789,7 @@ root.BareSlideshow = (function($) {
 
     // add and load slides
     $previous_slide[add_method]($next_slide);
-    self.$slides = self.get_$slides();
+    self.set_$slides();
 
     $.when(this.load_slides($next_slide, true))
      .then(after_load);
