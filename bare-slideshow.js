@@ -757,7 +757,6 @@ root.BareSlideshow = (function($) {
 
     // after load
     after_load = function() {
-      self.set_necessary_css_properties();
       self.show_slides($next_slide, { animation_speed: 0 });
 
       if (fade) {
@@ -778,8 +777,8 @@ root.BareSlideshow = (function($) {
       } else {
         after_animation = function() {
           $previous_slide.remove();
-          self.$slides_wrapper.css(css_value_to_animate, "0px");
           self.set_$slides();
+          self.$slides_wrapper.css(css_value_to_animate, "0px");
         };
 
         self.animate_wrapper(css_value_to_animate, offset, options.animation_speed, after_animation);
@@ -787,10 +786,12 @@ root.BareSlideshow = (function($) {
       }
     };
 
-    // add and load slides
+    // add slide + css
     $previous_slide[add_method]($next_slide);
     self.set_$slides();
+    self.set_necessary_css_properties();
 
+    // load slide
     $.when(this.load_slides($next_slide, true))
      .then(after_load);
 
