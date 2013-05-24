@@ -258,7 +258,7 @@ root.BareSlideshow = (function($) {
         } else if (self.settings.fit_images) {
           $slide.find("img[src]").each(function() {
             var $image = $(this);
-            setTimeout(function() { self.fit_image($image, $slide); });
+            setTimeout(function() { self.fit_image($image, $slide); }, 0);
           });
         }
       });
