@@ -37,7 +37,7 @@ root.BareSlideshow = (function($) {
    *  Constructor
    */
   function BS(element, settings) {
-    this.state = { timeout_ids: [] };
+    this.state = {};
     this.settings = $.extend({}, this.settings, settings || {});
 
     // bind to self
@@ -79,24 +79,22 @@ root.BareSlideshow = (function($) {
     // reset + css
     this.$slides_wrapper.css("height", "");
     this.$slideshow.css("height", "");
-    this.has_variable_height = false;
+    this.state.has_variable_height = false;
     this.set_necessary_css_properties();
 
-    // conditions
+    // conditions -> transition
     if (this.settings.transition == "fade") {
       this.settings.transition_system = "two-step";
     }
 
+    // conditions -> start slide
     if (this.settings.start_in_the_middle) {
       this.start_slide = Math.round(this.count_slides() / 2);
     } else {
       this.start_slide = this.settings.start_slide;
     }
 
-    if (!this.settings.slide_used_for_height) {
-      this.settings.slide_used_for_height = this.start_slide;
-    }
-
+    // conditions -> events
     if (!this.state.events_bounded_boolean) {
       this.bind_events();
     }
@@ -303,7 +301,7 @@ root.BareSlideshow = (function($) {
     self.go_to_slide(self.state.current_slide_number, { direct: true });
 
     // variable height?
-    if (self.has_variable_height) {
+    if (self.state.has_variable_height) {
       this.$slideshow
         .add(this.$slides_wrapper)
         .add(this.$slides)
@@ -640,7 +638,7 @@ root.BareSlideshow = (function($) {
           .add(this.$slides)
           .height($image.height());
 
-        this.has_variable_height = true;
+        this.state.has_variable_height = true;
       } else if (!isFinite(ratio_wrapper)) {
         $wrapper.height(this.$slides_wrapper.height());
       }
@@ -843,6 +841,7 @@ root.BareSlideshow = (function($) {
     // animate
     this.animate_wrapper(css_value_to_animate, -offset, options.animation_speed);
 
+    // return
     return $next_slide;
   };
 
