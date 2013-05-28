@@ -74,7 +74,6 @@ root.BareSlideshow = (function($) {
    */
   BS.prototype.setup = function() {
     this.set_$children();
-    this.state.$slides = this.$slides.clone();
 
     // reset + css
     this.$slides_wrapper.css("height", "");
@@ -425,17 +424,18 @@ root.BareSlideshow = (function($) {
   BS.prototype.set_$children = function() {
     this.$slide_navigation = this.get_$slide_navigation();
     this.$slides_wrapper = this.get_$slides_wrapper();
-    this.set_$slides();
+    this.set_$slides(true);
   };
 
 
-  BS.prototype.set_$slides = function() {
+  BS.prototype.set_$slides = function(set_collection) {
     this.$slides = this.get_$slides();
+    if (set_collection) this.state.slides_collection = this.$slides.clone();
   };
 
 
   BS.prototype.count_slides = function() {
-    return this.state.$slides.length;
+    return this.state.slides_collection.length;
   };
 
 
@@ -569,14 +569,14 @@ root.BareSlideshow = (function($) {
     $slides.each(function() {
       var $slide, $img;
 
-      //// set
+      // set
       $slide = $(this);
       $img = $slide.find("img[src]");
 
-      //// check
+      // check
       if (!$img.length) return;
 
-      //// background css
+      // background css
       $slide.css("background-image", "url(" + $img.attr("src") + ")")
             .css("background-position", "center")
             .css("background-repeat", "no-repeat");
@@ -585,7 +585,7 @@ root.BareSlideshow = (function($) {
         $slide.css("background-size", "cover");
       }
 
-      //// remove img
+      // remove img
       $img.remove();
     });
   };
@@ -739,7 +739,7 @@ root.BareSlideshow = (function($) {
       return (av < bv ? -1 : (av > bv ? 1 : 0));
     }).reverse()[0]);
 
-    $next_slide = $(this.state.$slides[slide_number - 1]).clone();
+    $next_slide = $(this.state.slides_collection[slide_number - 1]).clone();
 
     offset = -($previous_slide[method]());
     fade = this.settings.transition == "fade";
