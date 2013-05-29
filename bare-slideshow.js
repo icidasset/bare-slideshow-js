@@ -507,7 +507,7 @@ window.BareSlideshow = (function($) {
 
   BS.prototype.transition_type_two_step = function(slide_number, options) {
     var _this, add_method, is_vertical, method, css_value_to_animate,
-        offset, fade, after_load, after_animation,
+        offset, set_offset, fade, after_load, after_animation,
         $previous_slide, $next_slide;
 
     // set
@@ -539,15 +539,21 @@ window.BareSlideshow = (function($) {
     $next_slide.data("timestamp", new Date().getTime());
 
     // offset
-    offset = -($previous_slide[method]());
+    set_offset = function() {
+      offset = -($previous_slide[method]());
 
-    if (add_method == "before" && !fade) {
-      this.$slides_wrapper.css(css_value_to_animate, offset);
-      offset = 0;
-    }
+      if (add_method == "before" && !fade) {
+        _this.$slides_wrapper.css(css_value_to_animate, offset);
+        offset = 0;
+      }
+    };
+
+    set_offset();
 
     // after load
     after_load = function() {
+      set_offset();
+
       _this.show_slides($next_slide, { animation_speed: 0 });
 
       if (fade) {
