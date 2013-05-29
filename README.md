@@ -41,6 +41,9 @@ set_images_as_background = false; // i.e. img element vs css background on slide
 fit_images = true;
 start_in_the_middle = false; // overrides start slide
 start_slide = 1;
+
+// 3. versions
+versions = {}; // responsive stuff, see below for more information
 ```
 
 
@@ -58,6 +61,34 @@ Check `BareSlideshow.prototype.load_slides_with_images` for reference.
 *set_images_as_background* is a global option, but can also be set for each slide separately by passing
   `data-as-background="1"` to the slide element. Or one of the following:
   `data-as-background="true"` or `$(slide_element).data('as-background', true)`.
+
+### versions
+
+Versions can be used to load smaller assets depending on window width.
+
+```javascript
+// usage example
+// -> if window_width <= version then use_version()
+// -> else use_larger_version() || use_standard_src_attribute();
+
+settings = {};
+settings.versions = {
+  small: 640,
+  medium: 1024
+};
+
+// ... create new instance ...
+```
+
+```html
+<div class="slideshow">
+  <div class="slides">
+    <div class="slide">
+      <img data-small-src="small.jpg" data-medium-src="medium.jpg" data-src="original.jpg" />
+    </div>
+  </div>
+</div>
+```
 
 
 ## To do

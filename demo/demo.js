@@ -3,10 +3,19 @@
 
   // slideshow element & options
   el = document.getElementById("slideshow");
-  opts = {};
+
+  // opts
+  opts = {
+    type_a: {},
+    type_b: { transition_system: "all" },
+    type_c: { transition: "fade" },
+    type_d: { direction: "vertical" },
+    type_e: { direction: "vertical", transition_system: "all" },
+    type_f: { set_images_as_background: true }
+  };
 
   // setup & load slideshow
-  bs = new BareSlideshow(el, opts);
+  bs = new BareSlideshow(el, opts.type_a);
   bs.load();
 
   // some example events
