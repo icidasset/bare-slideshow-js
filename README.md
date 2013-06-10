@@ -44,7 +44,7 @@ start_slide = 1;
 
 // 3. versions
 versions = {}; // responsive stuff, see below for more information
-version_element = slideshow_instance.slideshow_element; // the version will be based on the width from this element
+version_element = slideshow_element; // the version will be based on the width from this element
 ```
 
 
@@ -69,7 +69,7 @@ Versions can be used to load smaller assets depending on window width.
 
 ```javascript
 // usage example
-// -> if window_width <= version then use_version()
+// -> if version_element_width <= version then use_version()
 // -> else use_larger_version() || use_standard_src_attribute();
 
 settings = {};
