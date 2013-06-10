@@ -36,7 +36,7 @@ slide_navigation_klass = "navigation";
 direction = "horizontal"; // or "vertical"
 transition = "slide"; // or "fade"
 transition_system = "two-step"; // or "all", which keeps all the slides in the DOM
-animation_speed = 350;
+animation_duration = 350;
 set_images_as_background = false; // i.e. img element vs css background on slide element
 fit_images = true;
 start_in_the_middle = false; // overrides start slide
@@ -44,6 +44,7 @@ start_slide = 1;
 
 // 3. versions
 versions = {}; // responsive stuff, see below for more information
+version_element = slideshow_instance.slideshow_element; // the version will be based on the width from this element
 ```
 
 

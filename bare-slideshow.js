@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.2
+    v0.2.1
 
 */
 
@@ -21,12 +21,13 @@ window.BareSlideshow = (function($) {
     direction: "horizontal",
     transition: "slide",
     transition_system: "two-step",
-    animation_speed: 350,
+    animation_duration: 350,
     set_images_as_background: false,
     fit_images: true,
     start_in_the_middle: false,
     start_slide: 1,
-    versions: {}
+    versions: {},
+    version_element: "{{slideshow_element}}"
   };
 
 
@@ -38,9 +39,9 @@ window.BareSlideshow = (function($) {
   function BS(element, settings) {
     this.bind_necessary_methods_to_self();
 
+    this.set_main_element(element);
     this.set_initial_state_object();
     this.set_initial_settings_object(settings);
-    this.set_main_element(element);
     this.set_versions_array_in_state();
     this.set_current_version(this.determine_version());
 
@@ -280,7 +281,7 @@ window.BareSlideshow = (function($) {
     src = encodeURI(src);
 
     // load up
-    $img.css("opacity", 0)
+    $img.css("opacity", 0.0001)
         .on("load", dfd.resolve)
         .on("error", dfd.resolve);
 
@@ -445,15 +446,15 @@ window.BareSlideshow = (function($) {
   //  {1} -> {show_slides}
   //
   BS.prototype.show_slides = function($slides, options) {
-    var _this, dfd, animation_speed, fade_to, $objects_to_show;
+    var _this, dfd, animation_duration, fade_to, $objects_to_show;
 
     // set
     _this = this;
     dfd = $.Deferred();
 
     options = options || {};
-    if (options.animation_speed == null) animation_speed = this.settings.animation_speed;
-    else animation_speed = options.animation_speed;
+    if (options.animation_duration == null) animation_duration = this.settings.animation_duration;
+    else animation_duration = options.animation_duration;
 
     fade_to = (this.settings.set_images_as_background ? 0.9999 : 1);
     $objects_to_show = (this.settings.set_images_as_background ? $slides : $slides.find("img[src]"));
@@ -462,12 +463,12 @@ window.BareSlideshow = (function($) {
     $objects_to_show.each(function(idx) {
       var __this = this;
       setTimeout(function() {
-        _this.animate(__this, "opacity", 1, animation_speed);
-      }, (animation_speed / 2) * (idx + 1));
+        _this.animate(__this, "opacity", 1, animation_duration);
+      }, (animation_duration / 2) * (idx + 1));
     });
 
     // resolve when everything is shown
-    setTimeout(dfd.resolve, ((animation_speed / 2) * $objects_to_show.length) + animation_speed);
+    setTimeout(dfd.resolve, ((animation_duration / 2) * $objects_to_show.length) + animation_duration);
 
     // promise
     return dfd.promise();
@@ -490,7 +491,7 @@ window.BareSlideshow = (function($) {
     if (check_1 && check_2) return;
 
     // animation stuff
-    options.animation_speed = (options.direct ? 0 : this.settings.animation_speed);
+    options.animation_duration = (options.direct ? 0 : this.settings.animation_duration);
 
     // next method
     ts = this.settings.transition_system.replace("-", "_");
@@ -554,7 +555,7 @@ window.BareSlideshow = (function($) {
     after_load = function() {
       set_offset();
 
-      _this.show_slides($next_slide, { animation_speed: 0 });
+      _this.show_slides($next_slide, { animation_duration: 0 });
 
       if (fade) {
         after_animation = function() {
@@ -569,7 +570,7 @@ window.BareSlideshow = (function($) {
           zIndex: 8
         });
 
-        _this.animate($previous_slide[0], "opacity", 0, options.animation_speed, after_animation);
+        _this.animate($previous_slide[0], "opacity", 0, options.animation_duration, after_animation);
 
       } else {
         after_animation = function() {
@@ -578,7 +579,7 @@ window.BareSlideshow = (function($) {
           _this.$slides_wrapper.css(css_value_to_animate, "0px");
         };
 
-        _this.animate_wrapper(css_value_to_animate, offset, options.animation_speed, after_animation);
+        _this.animate_wrapper(css_value_to_animate, offset, options.animation_duration, after_animation);
 
       }
     };
@@ -637,7 +638,7 @@ window.BareSlideshow = (function($) {
     offset = offset - this.$slides_wrapper[method]() / 2;
 
     // animate
-    this.animate_wrapper(css_value_to_animate, -offset, options.animation_speed);
+    this.animate_wrapper(css_value_to_animate, -offset, options.animation_duration);
 
     // return
     return $next_slide;
@@ -673,18 +674,6 @@ window.BareSlideshow = (function($) {
   //  Setters
   //  {1} -> {one_timers}
   //
-  BS.prototype.set_initial_state_object = function() {
-    this.state = {};
-    this.state.css_transition_key = this.get_vendor_property_name("transition");
-  };
-
-
-  BS.prototype.set_initial_settings_object = function(settings) {
-    this.settings = $.extend({}, this.settings, settings || {});
-    this.set_conditional_settings();
-  };
-
-
   BS.prototype.set_main_element = function(element) {
     this.$slideshow = (function() {
       if (element instanceof $) {
@@ -695,6 +684,30 @@ window.BareSlideshow = (function($) {
         return $(element);
       }
     }());
+
+    this.slideshow_element = this.$slideshow.get(0);
+  };
+
+
+  BS.prototype.set_initial_state_object = function() {
+    this.state = {};
+    this.state.css_transition_key = this.get_vendor_property_name("transition");
+  };
+
+
+  BS.prototype.set_initial_settings_object = function(settings) {
+    this.settings = $.extend({}, this.settings, settings || {});
+    this.set_conditional_settings();
+
+    // fake eval
+    for (var key in this.settings) {
+      var has_own = this.settings.hasOwnProperty(key);
+      var value = this.settings[key];
+
+      if (has_own && (typeof value === "string") && value.indexOf("{{") === 0) {
+        this.settings[key] = this[value.substr(2, value.length - 4)];
+      }
+    }
   };
 
 
@@ -877,12 +890,12 @@ window.BareSlideshow = (function($) {
 
 
   BS.prototype.determine_version = function() {
-    var window_width = $(window).width(),
+    var width = $(this.settings.version_element).width(),
         version = false;
 
     for (var i=0,j=this.state.versions_array.length; i<j; ++i) {
       var v = this.state.versions_array[i];
-      if (window_width <= v[1]) {
+      if (width <= v[1]) {
         version = v[0];
         break;
       }
@@ -899,7 +912,7 @@ window.BareSlideshow = (function($) {
       attr = "data-" + this.state.current_version + "-src";
 
       if ($images) {
-        var window_width = $(window).width();
+        var width = $(this.settings.version_element).width();
 
         for (var i=0,j=this.state.versions_array.length; i<=j; ++i) {
           var version = this.state.versions_array[i];
@@ -907,7 +920,7 @@ window.BareSlideshow = (function($) {
 
           if (has_images) {
             break;
-          } else if (version && window_width <= version[1]) {
+          } else if (version && width <= version[1]) {
             attr = "data-" + version[0] + "-src";
           } else {
             attr = "data-src";
