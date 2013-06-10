@@ -276,6 +276,7 @@ window.BareSlideshow = (function($) {
   BS.prototype.load_image = function(src, $append_to, extra_attributes) {
     var dfd = $.Deferred();
     var $img = $(new window.Image());
+    var attributes;
 
     // encode
     src = encodeURI(src);
@@ -318,7 +319,7 @@ window.BareSlideshow = (function($) {
 
     switch (this.append_to) {
       case "slide":
-        $append_to = _this.get_closest_$slide($image);
+        $append_to = this.get_closest_$slide($image);
         break;
       case "parent":
         $append_to = $image.parent();
@@ -377,7 +378,7 @@ window.BareSlideshow = (function($) {
 
 
   BS.prototype.fit_image = function($image, $wrapper) {
-    var ratio_image, ratio_slideshow, ratio_wrapper,
+    var ratio_image, ratio_wrapper, ratio_slides_wrapper,
         full_height_condition_a, full_height_condition_b,
         new_image_height, image_left, image_top;
 
