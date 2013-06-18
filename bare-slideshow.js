@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.2.1
+    v0.2.2
 
 */
 
@@ -815,7 +815,7 @@ window.BareSlideshow = (function($) {
 
     // start slide
     if (this.settings.start_in_the_middle) {
-      this.settings.start_slide = Math.round(this.count_slides() / 2);
+      this.settings.start_slide = Math.round(this.get_$slides().length / 2);
     }
   };
 
