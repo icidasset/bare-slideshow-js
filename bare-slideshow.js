@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.2.2
+    v0.2.3
 
 */
 
@@ -60,15 +60,23 @@ window.BareSlideshow = (function($) {
   };
 
 
-  BS.prototype.reprocess = function() {
+  BS.prototype.reprocess = function(start_slide, skip_slides, skip_load) {
     this.state.ready = false;
-    this.$slides_wrapper.html(this.state.slides_collection.clone());
     this.$slideshow.removeClass("loaded-first loading");
     this.$slides_wrapper.css({ textIndent: "0", marginTop: "0" });
 
-    this.settings.start_slide = this.state.current_slide_number;
+    // slides html
+    if (!skip_slides) {
+      var $slides_collection_clone = this.state.$slides_collection.clone();
+      this.$slides_wrapper.empty().append($slides_collection_clone);
+    }
+
+    // settings -> setup
+    this.settings.start_slide = start_slide || this.state.current_slide_number;
     this.setup();
-    this.load();
+
+    // load
+    if (!skip_load) this.load();
   };
 
 
@@ -327,7 +335,12 @@ window.BareSlideshow = (function($) {
     }
 
     // set
-    data_attr = this.instance.get_attribute_name_for_image_src($image);
+    if (this.instance) {
+      data_attr = this.instance.get_attribute_name_for_image_src($image);
+    } else {
+      data_attr = "data-src";
+    }
+
     src = $image.attr(data_attr);
 
     // copy attributes
@@ -535,7 +548,7 @@ window.BareSlideshow = (function($) {
       return (av < bv ? -1 : (av > bv ? 1 : 0));
     }).reverse()[0]);
 
-    $next_slide = $(this.state.slides_collection[slide_number - 1]).clone();
+    $next_slide = $(this.state.$slides_collection[slide_number - 1]).clone();
 
     // timestamp
     $next_slide.data("timestamp", new Date().getTime());
@@ -720,14 +733,14 @@ window.BareSlideshow = (function($) {
   BS.prototype.set_$children = function() {
     this.$slide_navigation = this.get_$slide_navigation();
     this.$slides_wrapper = this.get_$slides_wrapper();
-    this.set_$slides();
+    this.set_$slides(true);
   };
 
 
-  BS.prototype.set_$slides = function() {
+  BS.prototype.set_$slides = function(reset_slides_collection) {
     this.$slides = this.get_$slides();
-    if (!this.state.slides_collection) {
-      this.state.slides_collection = this.$slides.clone();
+    if (!this.state.$slides_collection || reset_slides_collection) {
+      this.state.$slides_collection = this.$slides.clone();
     }
   };
 
@@ -1027,7 +1040,7 @@ window.BareSlideshow = (function($) {
   //  {3} -> {other}
   //
   BS.prototype.count_slides = function() {
-    return this.state.slides_collection.length;
+    return this.state.$slides_collection.length;
   };
 
 
