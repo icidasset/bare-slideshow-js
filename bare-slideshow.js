@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.2.4
+    v0.2.5
 
 */
 
