@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.2.5
+    v0.2.6
 
 */
 
@@ -227,6 +227,7 @@ window.BareSlideshow = (function($) {
       var $slide = $(slide);
       var type = $slide.data("type") || "images";
       var method = _this["load_slides_with_" + type];
+      $slide.addClass("loading");
 
       if (method) return method($slide, add_to_dom);
       else console.error("slide type not implemented");
@@ -237,6 +238,8 @@ window.BareSlideshow = (function($) {
       if (!add_to_dom) {
         $slides.remove();
         _this.set_$slides();
+      } else {
+        $slides.removeClass("loading");
       }
 
       dfd.resolve();
