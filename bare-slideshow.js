@@ -1,7 +1,7 @@
 /*
 
     BARE SLIDESHOW
-    v0.2.3
+    v0.2.4
 
 */
 
@@ -60,6 +60,12 @@ window.BareSlideshow = (function($) {
   };
 
 
+
+  //
+  //  Reprocess
+  //  -> Rebuild the slideshow
+  //     Useful if you need to add new and/or remove old slides
+  //
   BS.prototype.reprocess = function(start_slide, skip_slides, skip_load) {
     this.state.ready = false;
     this.$slideshow.removeClass("loaded-first loading");
@@ -110,7 +116,7 @@ window.BareSlideshow = (function($) {
       this.reprocess();
 
     } else {
-      this.go_to_slide(this.state.current_slide_number, { direct: true });
+      this.go_to_slide(this.state.current_slide_number, { direct: true, bypass: true });
       if (this.state.has_variable_height) this.set_slideshow_height_equal_to_image_height();
       this.refit_all_images();
 
@@ -156,7 +162,7 @@ window.BareSlideshow = (function($) {
 
   BS.prototype.load_the_rest = function() {
     var _this = this;
-    var add_to_dom = (this.settings.transition_system == "all");
+    var add_to_dom = (this.settings.transition_system != "two-step");
     var $slides = this.$slides.not(this.state.first_slide_element);
 
     return this.serial_queue([
@@ -180,9 +186,6 @@ window.BareSlideshow = (function($) {
   BS.prototype.after_load_first = function(dfd) {
     var $first_slide = $(this.state.first_slide_element);
 
-    // add class to main element
-    this.$slideshow.addClass("loaded-first");
-
     // go to first slide
     if (this.settings.transition_system == "two-step") {
       this.$slides.not($first_slide).hide(0);
@@ -194,6 +197,11 @@ window.BareSlideshow = (function($) {
     // and then show it
     $.when(this.show_slides($first_slide))
      .then(dfd.resolve);
+
+    // add class to main element
+    setTimeout(__bind(function() {
+      this.$slideshow.addClass("loaded-first");
+    }, this), 0);
   };
 
 
@@ -498,14 +506,19 @@ window.BareSlideshow = (function($) {
     var ts, check_1, check_2, $next_slide;
 
     options = options || {};
-    check_1 = !this.state.ready || this.state.current_slide_number === slide_number;
+    check_1 = !this.state.ready || (this.state.current_slide_number === slide_number);
     check_2 = !options.bypass;
 
     // check
     if (check_1 && check_2) return;
 
     // animation stuff
-    options.animation_duration = (options.direct ? 0 : this.settings.animation_duration);
+    options.animation_duration = (
+      options.direct ? 0 :
+      this.settings.animation_duration * Math.abs(
+        this.state.current_slide_number ? this.state.current_slide_number - slide_number : 1
+      )
+    );
 
     // next method
     ts = this.settings.transition_system.replace("-", "_");
