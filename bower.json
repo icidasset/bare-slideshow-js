@@ -1,0 +1,25 @@
+{
+  "name": "bare-slideshow-js",
+  "version": "0.2.4",
+  "homepage": "https://github.com/icidasset/bare-slideshow-js",
+  "authors": [
+    "Steven Vandevelde <icid.asset@gmail.com>"
+  ],
+  "description": "Basic slideshow plugin written in js with prototypes for easy customization.",
+  "main": "bare-slideshow.js",
+  "keywords": [
+    "slideshow",
+    "jquery",
+    "custom",
+    "customization",
+    "prototype"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
