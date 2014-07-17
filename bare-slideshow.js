@@ -513,12 +513,7 @@ window.BareSlideshow = (function($) {
     if (check_1 && check_2) return;
 
     // animation stuff
-    options.animation_duration = (
-      options.direct ? 0 :
-      this.settings.animation_duration * Math.abs(
-        this.state.current_slide_number ? this.state.current_slide_number - slide_number : 1
-      )
-    );
+    options.animation_duration = (options.direct ? 0 : this.settings.animation_duration);
 
     // next method
     ts = this.settings.transition_system.replace("-", "_");
