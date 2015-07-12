@@ -1,9 +1,67 @@
 body, html {
   height: 100%;
-  margin: 0;
 }
 
-#slideshow,
-#slideshow .slides,
-#slideshow .slides .slide { height: 100% }
-#slideshow .slides .slide { width: 100% }
+body {
+  margin: 3.5% 5%;
+}
+
+.clear:after {
+  clear: both;
+  content: "";
+  display: table;
+}
+
+/* Type 1 */
+.slideshow-type-1 {
+  cursor: pointer;
+  float: left;
+  margin: 0 2.5% 5% 0;
+  width: 47.5%;
+}
+
+.slideshow-type-1:nth-child(2n) {
+  margin-left: 2.5%;
+  margin-right: 0;
+}
+
+/* Type 2 */
+.slideshow-type-2 {
+  margin-bottom: 5%;
+  padding-top: 66%;
+}
+
+.slideshow-type-2 .slideshow__slides {
+  left: 0;
+  position: absolute !important;
+  top: 0;
+  width: 100%;
+}
+
+.slideshow-type-2 .slideshow__slides,
+.slideshow-type-2 .slideshow__slide {
+  height: 100%;
+}
+
+/* Type 3 */
+.slideshow-type-3 {
+  margin-bottom: 5%;
+  padding-top: 25%;
+}
+
+.slideshow-type-3 .slideshow__slides {
+  left: 0;
+  position: absolute !important;
+  top: 0;
+  width: 100%;
+}
+
+.slideshow-type-3 .slideshow__slides,
+.slideshow-type-3 .slideshow__slide {
+  height: 100%;
+}
+
+.slideshow-type-3 .slideshow__slide {
+  margin-right: 2.5%;
+  width: 35% !important;
+}

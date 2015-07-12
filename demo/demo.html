@@ -1,27 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bare Slideshow Example</title>
-
+  <title>Bare Slideshow Demo</title>
   <link rel="stylesheet" href="demo.css" />
 </head>
 <body>
 
-  <!-- slideshow element -->
-  <div id="slideshow">
-    <div class="slides">
-      <div class="slide"><img data-src="vendor/images/a.jpg" /></div>
-      <div class="slide"><img data-src="vendor/images/b.jpg" /></div>
-      <div class="slide"><img data-src="vendor/images/c.jpg" /></div>
-      <div class="slide"><img data-src="vendor/images/d.jpg" /></div>
+
+  <!-- 1 & 2 (1a & 1b) -->
+  <div class="clear">
+
+    <div class="slideshow-type-1" demo="1">
+      <div class="slideshow__slides">
+        <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/485/19053515260_4d4d0badef_k_d.jpg" /></div>
+        <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/419/19392850535_df08af2db6_k_d.jpg" /></div>
+        <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/421/18400889874_4d2535395d_k_d.jpg" /></div>
+        <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/350/19053527180_cd1294c807_k_d.jpg" /></div>
+      </div>
+    </div>
+
+    <div class="slideshow-type-1" demo="2">
+      <div class="slideshow__slides">
+        <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/485/19053515260_4d4d0badef_k_d.jpg" /></div>
+        <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/419/19392850535_df08af2db6_k_d.jpg" /></div>
+        <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/421/18400889874_4d2535395d_k_d.jpg" /></div>
+        <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/350/19053527180_cd1294c807_k_d.jpg" /></div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- 3 (2a) -->
+  <div class="slideshow-type-2" demo="3">
+    <div class="slideshow__slides">
+      <div class="slideshow__slide">
+        <img
+          bs-small-src="https://farm1.staticflickr.com/459/19349048480_f41cb17d7c_m_d.jpg?bs=SMALL"
+          bs-medium-src="https://farm1.staticflickr.com/459/19349048480_f41cb17d7c_z_d.jpg?bs=MEDIUM"
+          bs-large-src="https://farm1.staticflickr.com/459/19349048480_31e3539b83_k_d.jpg?bs=LARGE"
+          bs-src="https://farm1.staticflickr.com/459/19349048480_590e28c6e6_o_d.jpg?bs=ORIGINAL"
+        />
+      </div>
+
+      <div class="slideshow__slide">
+        <img
+          bs-small-src="https://farm1.staticflickr.com/300/19379688965_31d197ba32_m_d.jpg?bs=SMALL"
+          bs-medium-src="https://farm1.staticflickr.com/300/19379688965_31d197ba32_z_d.jpg?bs=MEDIUM"
+          bs-large-src="https://farm1.staticflickr.com/300/19379688965_8f77bf8c6c_k_d.jpg?bs=LARGE"
+          bs-src="https://farm1.staticflickr.com/300/19379688965_1ae45d839c_o_d.jpg?bs=ORIGINAL"
+        />
+      </div>
+
+      <div class="slideshow__slide">
+        <img
+          bs-small-src="https://farm1.staticflickr.com/327/18582429253_b02104d8d7_m_d.jpg?bs=SMALL"
+          bs-medium-src="https://farm1.staticflickr.com/327/18582429253_b02104d8d7_z_d.jpg?bs=MEDIUM"
+          bs-large-src="https://farm1.staticflickr.com/327/18582429253_5f7451d3ab_k_d.jpg?bs=LARGE"
+          bs-src="https://farm1.staticflickr.com/327/18582429253_071a4d858f_o_d.jpg?bs=ORIGINAL"
+        />
+      </div>
     </div>
   </div>
 
-  <!-- dependencies -->
-  <script src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
+  <!-- 4 (3a) -->
+  <div class="slideshow-type-3" demo="4">
+    <div class="slideshow__slides">
+      <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/459/19349048480_590e28c6e6_o_d.jpg" /></div>
+      <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/300/19379688965_1ae45d839c_o_d.jpg" /></div>
+      <div class="slideshow__slide"><img bs-src="https://farm1.staticflickr.com/327/18582429253_071a4d858f_o_d.jpg" /></div>
+    </div>
+  </div>
 
   <!-- slideshow code -->
-  <script src="../bare-slideshow.js"></script>
+  <script src="../dist/bare-slideshow.js"></script>
   <script src="demo.js"></script>
 
 </body>

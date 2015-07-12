@@ -1,0 +1,18 @@
+{
+  "ecmaFeatures": {
+    "modules": true
+  },
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "parser": "babel-eslint",
+  "rules": {
+    "camelcase": 0,
+    "consistent-return": 0,
+    "curly": 0,
+    "no-console": 0,
+    "no-multi-spaces": 0,
+    "no-underscore-dangle": 0
+  }
+}

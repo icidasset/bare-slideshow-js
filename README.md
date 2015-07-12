@@ -1,69 +1,100 @@
-# Bare Slideshow
+# Bare Slideshow v0.3-BETA
 
-Basic slideshow plugin written in js with prototypes for easy customization.
+Basic slideshow plugin written in vanilla js.
 
 
-## Dependencies
 
-- jQuery
+## Features
 
-*There might be support for Zepto in the future*
+- Flexible / Responsive
+- Handles image loading
+- Adds css based on settings
+- Loads start slide first (to reduce load time)
+- Support for handling custom slide types (e.g. video)
+
+
+
+## To do
+
+- Add 'fade' transition
+
 
 
 ## How to use
 
-```javascript
-var instance = new BareSlideshow(element, optional_settings);
-// where element could be either a regular DOM element
-// or a jQuery object
+HTML:
 
-instance.load();
+```html
+<div class="slideshow">
+  <div class="slideshow__slides">
+    <div class="slideshow__slide">
+      <img bs-src="original.jpg" />
+    </div>
+  </div>
+</div>
 ```
 
-*note: does not use a template*
+JS:
+
+```javascript
+var instance = new BareSlideshow(element, optional_settings);
+
+instance.el.onclick = instance.goToNextSlide;
+```
 
 
 ## Settings
 
+Copied from source code, line 5:
+
 ```javascript
-// with defaults
-// 1. css classes
-slide_klass = "slide";
-slides_wrapper_klass = "slides"; // aka slides container
-slide_navigation_klass = "navigation";
+const DEFAULT_SETTINGS = {
+  selectors: {
+    slides: ".slideshow__slide",
+    slidesWrapper: ".slideshow__slides"
+  },
 
-// 2. options
-direction = "horizontal"; // or "vertical"
-transition = "slide"; // or "fade"
-transition_system = "two-step"; // or "all", which keeps all the slides in the DOM
-animation_duration = 350;
-set_images_as_background = false; // i.e. img element vs css background on slide element
-fit_images = true;
-start_in_the_middle = false; // overrides start slide
-start_slide = 1;
+  activeSlideClass: "is-active",
+  direction: "horizontal",
+  disableSlideCssTransform: false,
+  fadeAnimationDuration: 700,
+  fitImages: true,
+  hasVariableHeight: false,
+  loadedFirstClass: "has-loaded-first",
+  loadingClass: "is-loading",
+  setImagesAsBackground: false,
+  slideAnimationDuration: 400,
+  startInTheMiddle: false,
+  startSlide: 1,
 
-// 3. versions
-versions = {}; // responsive stuff, see below for more information
-version_element = slideshow_element; // the version will be based on the width from this element
+  transition: "slide",
+  // other options: "fade" -> TODO
+
+  transitionSystem: "two-step",
+  // other options: "all"
+
+  versions: NEW_OBJECT_PLACEHOLDER,
+  versionElementSelector: false
+  // if: false, then the element given to the constructor is used
+  // if: "string", then -> this.el.querySelector("string");
+};
 ```
+
+### Transition systems
+
+#### Two step (two-step)
+
+Removes the previous slide and brings in the new one.
+
+
+#### All (all)
+
+Keeps all the slides in the DOM. Use this if you want show multiple slides next to each other.
 
 
 ## Other settings
 
-### data-type
-
-A slide can have a type by passing the 'data-type' attribute to the slide element.
-When loading the slideshow, the function 'load_slide_with_{{TYPE}}' will be called for each slide.
-**Make sure this function returns a deferred object.**
-Check `BareSlideshow.prototype.load_slides_with_images` for reference.
-
-### set images as background
-
-*set_images_as_background* is a global option, but can also be set for each slide separately by passing
-  `data-as-background="1"` to the slide element. Or one of the following:
-  `data-as-background="true"` or `$(slide_element).data('as-background', true)`.
-
-### versions
+### Versions
 
 Versions can be used to load smaller assets depending on window width.
 
@@ -72,10 +103,11 @@ Versions can be used to load smaller assets depending on window width.
 // -> if version_element_width <= version then use_version()
 // -> else use_larger_version() || use_standard_src_attribute();
 
-settings = {};
-settings.versions = {
-  small: 640,
-  medium: 1024
+settings = {
+  versions = {
+    small: 640,
+    medium: 1024
+  }
 };
 
 // ... create new instance ...
@@ -83,16 +115,14 @@ settings.versions = {
 
 ```html
 <div class="slideshow">
-  <div class="slides">
-    <div class="slide">
-      <img data-small-src="small.jpg" data-medium-src="medium.jpg" data-src="original.jpg" />
+  <div class="slideshow__slides">
+    <div class="slideshow__slide">
+      <img bs-small-src="small.jpg" bs-medium-src="medium.jpg" bs-src="original.jpg" />
     </div>
   </div>
 </div>
 ```
 
+### Custom slide types
 
-## To do
-
-- Remove the jQuery dependency (or support both jQuery and Zepto)
-  -> Problem here is the deferreds
+A slide can have a type by passing the 'bs-type' attribute to the slide element. When loading the slideshow, the function 'loadSlideWith{{TYPE}}' will be called for each slide. **Make sure this function returns a [Promise](https://github.com/jakearchibald/es6-promise#es6-promise-subset-of-rsvpjs).** Check `bareSlideshowInstance.loadSlideWithImages` for a reference.

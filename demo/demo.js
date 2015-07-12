@@ -1,33 +1,40 @@
-(function() {
-  var el, opts, bs;
+document.addEventListener("DOMContentLoaded", function() {
 
-  // slideshow element & options
-  el = document.getElementById("slideshow");
+  var BareSlideshow = window.BareSlideshow;
 
-  // opts
-  opts = {
-    type_a: {},
-    type_b: { transition_system: "all" },
-    type_c: { transition: "fade" },
-    type_d: { direction: "vertical" },
-    type_e: { direction: "vertical", transition_system: "all" },
-    type_f: { set_images_as_background: true }
-  };
+  var a = new BareSlideshow(document.querySelector(`[demo="1"]`), {
+    hasVariableHeight: true
+  });
 
-  // setup & load slideshow
-  bs = new BareSlideshow(el, opts.type_a);
-  bs.load();
+  a.el.onclick = a.goToNextSlide;
 
-  // some example events
-  el.onclick = bs.go_to_next_slide;
-  document.onkeyup = function(e) {
-    switch (e.keyCode) {
-      case 37: bs.go_to_previous_slide(); break;
-      case 38: bs.go_to_slide(1); break;
-      case 39: bs.go_to_next_slide(); break;
+
+  var b = new BareSlideshow(document.querySelector(`[demo="2"]`), {
+    hasVariableHeight: true,
+    setImagesAsBackground: true
+  });
+
+  b.el.onclick = b.goToNextSlide;
+
+
+  var c = new BareSlideshow(document.querySelector(`[demo="3"]`), {
+    direction: "vertical",
+
+    versions: {
+      small: 240,
+      medium: 640,
+      large: 2048
+      // original: 5616
     }
-  };
+  });
 
-  // globalize
-  window.slideshow_instance = bs;
-}());
+  c.el.onclick = c.goToNextSlide;
+
+  var d = new BareSlideshow(document.querySelector(`[demo="4"]`), {
+    direction: "horizontal",
+    transitionSystem: "all"
+  });
+
+  d.el.onclick = d.goToNextSlide;
+
+});
