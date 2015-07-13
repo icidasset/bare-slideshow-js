@@ -39,8 +39,10 @@ JS:
 ```javascript
 var instance = new BareSlideshow(element, optional_settings);
 
+instance.run();
 instance.el.onclick = instance.goToNextSlide;
 ```
+
 
 
 ## Settings
@@ -80,19 +82,17 @@ const DEFAULT_SETTINGS = {
 };
 ```
 
+
 ### Transition systems
 
 #### Two step (two-step)
 
 Removes the previous slide and brings in the new one.
 
-
 #### All (all)
 
 Keeps all the slides in the DOM. Use this if you want show multiple slides next to each other.
 
-
-## Other settings
 
 ### Versions
 
@@ -123,6 +123,8 @@ settings = {
 </div>
 ```
 
-### Custom slide types
+
+
+## Custom slide types
 
 A slide can have a type by passing the 'bs-type' attribute to the slide element. When loading the slideshow, the function 'loadSlideWith{{TYPE}}' will be called for each slide. **Make sure this function returns a [Promise](https://github.com/jakearchibald/es6-promise#es6-promise-subset-of-rsvpjs).** Check `bareSlideshowInstance.loadSlideWithImages` for a reference.

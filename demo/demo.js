@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function() {
     hasVariableHeight: true
   });
 
+  a.run();
   a.el.onclick = a.goToNextSlide;
 
 
@@ -14,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function() {
     setImagesAsBackground: true
   });
 
+  b.run();
   b.el.onclick = b.goToNextSlide;
 
 
@@ -28,6 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   });
 
+  c.run();
   c.el.onclick = c.goToNextSlide;
 
   var d = new BareSlideshow(document.querySelector(`[demo="4"]`), {
@@ -35,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function() {
     transitionSystem: "all"
   });
 
+  d.run();
   d.el.onclick = d.goToNextSlide;
 
 });

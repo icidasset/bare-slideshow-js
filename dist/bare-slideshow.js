@@ -66,21 +66,24 @@ var BareSlideshow = (function () {
     this.setInitialSettings(settings);
     this.setInitialState();
     this.setElementsAndCSS();
-
-    // transition method setup
-    var transitionSetupMethod = this["transitionSystem__" + this.titleCaseString(this.__settings.transitionSystem) + "__Setup"];
-
-    if (transitionSetupMethod) {
-      return transitionSetupMethod.call(this);
-    } else {
-      this.throwError("Transition method not implemented (setup fn)");
-    }
-
-    // other stuff
-    this.bindEvents();
   }
 
   _createClass(BareSlideshow, [{
+    key: "run",
+    value: function run() {
+      var transitionSystemStr = this.titleCaseString(this.__settings.transitionSystem);
+      var transitionSetupMethod = this["transitionSystem__" + transitionSystemStr + "__Setup"];
+
+      if (transitionSetupMethod) {
+        return transitionSetupMethod.call(this);
+      } else {
+        this.throwError("Transition method not implemented (setup fn)");
+      }
+
+      // events
+      this.bindEvents();
+    }
+  }, {
     key: "destroy",
     value: function destroy() {
       this.unbindEvents();
