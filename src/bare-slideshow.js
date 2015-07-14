@@ -63,14 +63,13 @@ export default class BareSlideshow {
     let transitionSystemStr = this.titleCaseString(this.__settings.transitionSystem);
     let transitionSetupMethod = this[`transitionSystem__${transitionSystemStr}__Setup`];
 
+    this.bindEvents();
+
     if (transitionSetupMethod) {
       return transitionSetupMethod.call(this);
     } else {
       this.throwError("Transition method not implemented (setup fn)");
     }
-
-    // events
-    this.bindEvents();
   }
 
 
