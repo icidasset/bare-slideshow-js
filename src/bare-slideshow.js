@@ -56,6 +56,10 @@ export default class BareSlideshow {
     this.setInitialSettings(settings);
     this.setInitialState();
     this.setElementsAndCSS();
+
+    if (this.__settings.startInTheMiddle) {
+      this.__settings.startSlide = Math.round(this.childrenElements.slides.length / 2);
+    }
   }
 
 
@@ -129,11 +133,6 @@ export default class BareSlideshow {
     // transition overrides
     if (obj.transition === "fade") {
       obj.transitionSystem = "two-step";
-    }
-
-    // start in the middle, start slide override
-    if (obj.startInTheMiddle) {
-      obj.startSlide = Math.round(this.get_$slides().length / 2);
     }
 
     // set
